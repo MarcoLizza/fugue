@@ -20,21 +20,26 @@ freely, subject to the following restrictions:
 
 ]]--
 
-local Emitter = require('emitter')
-
 -- MODULE DECLARATION ----------------------------------------------------------
 
-local Maze = {
+local Emitter = {
   _VERSION = '0.1.0',
-  -- PROPERTIES --
-  emitters = {}
+  -- PARAMETERS --
+  x = nil,
+  y = nil,
+  radius = nil,
+  energy = nil,
+  duration = nil,
+  -- VALUES --
+  life = nil,
+  alpha = nil
 }
 
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
 
-Maze.__index = Maze
+Emitter.__index = Emitter
 
-function Maze.new(params)
+function Emitter.new(params)
   local self = setmetatable({}, Maze)
   for k, v in pairs(params) do
   	self[k] = v
@@ -44,55 +49,53 @@ end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function Maze:initialize(width, height)
+function Emitter:initialize(x, y, radius, energy, duration)
+  self.x = x
+  self.y = y
+  self.radius = radius
+  self.energy = energy
+  self.duration = duration -- can be "nil" for everlasting emitters
+  self.life = 0
+  self.alpha = 1.0
 end
 
-function Maze:spawn_emitter(id, x, y, radius, energy, duration)
-  local emitter = Emitter.new()
-  emitter:initialize(x, y, radius, energy, duration)
-
-  self.emitters[id] = emitter
-end
-
-function Maze:kill_emitter()
-  self.emitters[id] = nil
-end
-
-function Maze:raycast(from_x, from_y, to_x, to_y)
-  return true
-end
-
-function Maze:update(dt)
-  local zombies = {}
-  for id, emitter in pairs(self.emitters) do
-  	emitter:update(dt)
-  	if not emitter:is_alive() then
-  	  zombies[#zombies + 1] = id
-  	end
-  end
-
-  for _, id in ipairs(zombies) do
-  	self.emitters[id] = nil
-  end
-
-  for row = 1, self.height do
-  	for column = 1, self.width do
-  	  local energy = 0
-      for _, emitter in pairs(self.emitters) do
-      	if self:raycast(emitter.x, emitter.y, row, column) then
-	      energy = energy + emitter:energy_at(row, column)
-      	end
-      end
-      self.map[row][column] = energy
-  	end
+function Emitter:energy_at(x, y)
+  local dx = x - self.x
+  local dy = y - self.y
+  local distance = math.sqrt(dx * dx + dy * dy) -- FIXME: could use squared value
+  if distance > self.radius then
+    return 0
+  else
+    return (distance / self.radius) * self.energy * self.alpha -- FIXME: the latter can be precalculated
   end
 end
 
-function Maze:draw(canvas)
+function Emitter:update(dt)
+  if self:is_alive() then
+    self.life = self.life + dt
+    if self.life > self.duration then -- bound check
+      self.life = self.duration
+    end
+    self.alpha = self.life / self.duration
+  end
+end
+
+function Emitter:is_alive()
+  -- If the [duration] property is null then the emitter is everlasting.
+  return self.duration and self.life < self.duration or true
+end
+
+function Emitter:get_position()
+  return self.x, self.y
+end
+
+function Emitter:set_position(x, y)
+  self.x = x
+  self.y = y
 end
 
 -- END OF MODULE ---------------------------------------------------------------
 
-return Maze
+return Emitter
 
 -- END OF FILE -----------------------------------------------------------------
