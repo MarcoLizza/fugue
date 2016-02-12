@@ -40,11 +40,11 @@ function love.load(args)
   -- Initializes the state-engine.
   stateful = Stateful.new()
   stateful:initialize({
-    splash = require('game.states.splash'),
+--    splash = require('game.states.splash'),
     game = require('game.states.game'),
-    restart = require('game.states.restart')
+--    restart = require('game.states.restart')
   })
-  stateful:switch_to('splash')
+  stateful:switch_to('game')
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -65,6 +65,8 @@ function love.draw()
   stateful:draw()
 
   love.graphics.pop()
+  
+  love.graphics.print(love.timer.getFPS(), 0, 0)
 end
 
 -- END OF FILE -----------------------------------------------------------------

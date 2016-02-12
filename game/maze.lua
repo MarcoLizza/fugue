@@ -20,14 +20,21 @@ freely, subject to the following restrictions:
 
 ]]--
 
-local Emitter = require('emitter')
+-- MODULE INCLUSIONS -----------------------------------------------------------
+
+local Emitter = require('game.emitter')
+local array = require('lib.array')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Maze = {
-  _VERSION = '0.1.0',
+  -- VALUES --
+  width = nil,
+  height = nil,
   -- PROPERTIES --
-  emitters = {}
+  emitters = {},
+  visibility = nil,
+  energy = nil
 }
 
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
@@ -36,8 +43,10 @@ Maze.__index = Maze
 
 function Maze.new(params)
   local self = setmetatable({}, Maze)
-  for k, v in pairs(params) do
-  	self[k] = v
+  if params then
+    for k, v in pairs(params) do
+      self[k] = v
+    end
   end
   return self
 end
@@ -45,6 +54,16 @@ end
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function Maze:initialize(width, height)
+  self.visibility = array.create(width, height, function(x, y)
+      return (x + y) % 4 == 0 and false or true
+    end)
+
+  self.energy = array.create(width, height, function(x, y)
+      return 0
+    end)
+
+  self.width = width
+  self.height = height
 end
 
 function Maze:spawn_emitter(id, x, y, radius, energy, duration)
@@ -54,41 +73,87 @@ function Maze:spawn_emitter(id, x, y, radius, energy, duration)
   self.emitters[id] = emitter
 end
 
-function Maze:kill_emitter()
+function Maze:kill_emitter(id)
   self.emitters[id] = nil
 end
 
-function Maze:raycast(from_x, from_y, to_x, to_y)
+function Maze:get_emitter(id)
+  return self.emitters[id]
+end
+
+function Maze:raycast(x0, y0, x1, y1, evaluate)
+  local dx = math.abs(x1 - x0)
+  local dy = math.abs(y1 - y0)
+  local sx = x0 < x1 and 1 or -1
+  local sy = y0 < y1 and 1 or -1
+  local e = dx - dy
+ 
+  while true do
+    -- Evaluate and check if the current point can be traversed. If not, quit
+    -- telling that the ray cannot be cast from the two points.
+    if not evaluate(x0, y0) then
+      return false
+    end
+    -- Quit when the destination point has been reached.
+    if x0 == x1 and y0 == y1 then
+      break
+    end
+    --
+    local e2 = e + e
+    if e2 > -dy then
+      e = e - dy
+      x0 = x0 + sx
+    end
+    if e2 < dx then
+      e = e + dx
+      y0 = y0 + sy
+    end
+  end
+  -- Successfully ended, the destination point is visible.
   return true
 end
 
 function Maze:update(dt)
+  -- Scan the emitters' list updating them and marking the "dead" ones. The
+  -- latter are pulled from the list.
   local zombies = {}
   for id, emitter in pairs(self.emitters) do
-  	emitter:update(dt)
-  	if not emitter:is_alive() then
-  	  zombies[#zombies + 1] = id
-  	end
+    emitter:update(dt)
+    if not emitter:is_alive() then
+      zombies[#zombies + 1] = id
+    end
   end
 
   for _, id in ipairs(zombies) do
-  	self.emitters[id] = nil
+    self.emitters[id] = nil
   end
 
-  for row = 1, self.height do
-  	for column = 1, self.width do
-  	  local energy = 0
+  -- Update the energy map.
+  for y = 1, self.height do
+    for x = 1, self.width do
+      local energy = 0
       for _, emitter in pairs(self.emitters) do
-      	if self:raycast(emitter.x, emitter.y, row, column) then
-	      energy = energy + emitter:energy_at(row, column)
-      	end
+        if emitter:influence(x, y) then
+          if self:raycast(emitter.x, emitter.y, x, y,
+            function(x, y)
+              return self.visibility[y][x]
+            end) then
+            energy = energy + emitter:energy_at(x, y)
+          end
+        end
       end
-      self.map[row][column] = energy
-  	end
+      self.energy[y][x] = energy
+    end
   end
 end
 
-function Maze:draw(canvas)
+function Maze:scan(callback)
+  for y = 1, self.height do
+    for x = 1, self.width do
+      callback(x, y, self.visibility[y][x],
+        self.energy[y][x])
+    end
+  end
 end
 
 -- END OF MODULE ---------------------------------------------------------------

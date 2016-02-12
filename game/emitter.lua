@@ -40,9 +40,11 @@ local Emitter = {
 Emitter.__index = Emitter
 
 function Emitter.new(params)
-  local self = setmetatable({}, Maze)
-  for k, v in pairs(params) do
-  	self[k] = v
+  local self = setmetatable({}, Emitter)
+  if params then
+    for k, v in pairs(params) do
+      self[k] = v
+    end
   end
   return self
 end
@@ -59,30 +61,46 @@ function Emitter:initialize(x, y, radius, energy, duration)
   self.alpha = 1.0
 end
 
+function Emitter:influence(x, y)
+  local dx = math.abs(x - self.x)
+  local dy = math.abs(y - self.y)
+  if dx > self.radius or dy > self.radius then
+    return false
+  end
+  return true
+end
+
 function Emitter:energy_at(x, y)
-  local dx = x - self.x
-  local dy = y - self.y
-  local distance = math.sqrt(dx * dx + dy * dy) -- FIXME: could use squared value
+  local dx = math.abs(x - self.x)
+  local dy = math.abs(y - self.y)
+  -- We could use the squared value, but it won't be a linear progression.
+  local distance = math.sqrt(dx * dx + dy * dy)
   if distance > self.radius then
     return 0
-  else
-    return (distance / self.radius) * self.energy * self.alpha -- FIXME: the latter can be precalculated
   end
+  return (1 - (distance / self.radius)) * self.energy * self.alpha -- FIXME: the latter can be precalculated
 end
 
 function Emitter:update(dt)
   if self:is_alive() then
-    self.life = self.life + dt
-    if self.life > self.duration then -- bound check
-      self.life = self.duration
+    -- Everlasting emitters do not change in time.
+    if self.duration then
+      self.life = self.life + dt
+      if self.life > self.duration then -- bound check
+        self.life = self.duration
+      end
+      self.alpha = 1 - (self.life / self.duration)
     end
-    self.alpha = self.life / self.duration
   end
 end
 
 function Emitter:is_alive()
   -- If the [duration] property is null then the emitter is everlasting.
-  return self.duration and self.life < self.duration or true
+  if not self.duration then
+    return true
+  else
+    return self.life < self.duration
+  end
 end
 
 function Emitter:get_position()
