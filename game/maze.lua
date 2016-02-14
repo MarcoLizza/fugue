@@ -70,6 +70,82 @@ function Maze:initialize(width, height)
   self.height = height
 end
 
+local DELTAX = {
+  n = 0, s = 0, e = 1, w = -1,
+}
+local DELTAY = {
+  n = -1, s = 1, e = 0, w = 0,
+}
+local OPPOSITE = {
+  n = 's', s = 'n', e = 'w', w = 'e',
+}
+local VALUE = {
+  n = 1, s = 2, e = 4, w = 8,
+}
+
+local function walk(grid, x, y)
+  local directions = array.shuffle({ 'n', 's', 'e', 'w' })
+  for _, direction in ipairs(directions) do
+    local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+    if nx >= 1 and ny >= 1 and ny <= #grid and nx <= #grid[ny] and grid[ny][nx] == 0 then
+      grid[y][x] = grid[y][x] + VALUE[direction]
+      grid[ny][nx] = grid[ny][nx] + VALUE[OPPOSITE[direction]]
+      return nx, ny
+    end
+  end
+  return nil, nil
+end
+
+
+local function hunt(grid)
+  for y = 1, #grid do
+    for x = 1, #grid[y] do
+      local cell = grid[y][x]
+      if cell == 0 then -- unvisited cell
+        local neighbours = {}
+        if y > 1 and grid[y - 1][x] ~= 0 then
+          neighbours[#neighbours + 1] = 'n'
+        end
+        if x > 1 and grid[y][x - 1] ~= 0 then
+          neighbours[#neighbours + 1] = 'w'
+        end
+        if x + 1 < #grid[y] and grid[y][x + 1] ~= 0 then
+          neighbours[#neighbours + 1] = 'e'
+        end
+        if y + 1 < #grid and grid[y + 1][x] ~= 0 then
+          neighbours[#neighbours + 1] = 's'
+        end
+        if #neighbours > 0 then -- at least a valid neighbour
+          local direction = neighbours[love.math.random(#neighbours)]
+          local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+          grid[y][x] = grid[y][x] + VALUE[direction]
+          grid[ny][nx] = grid[ny][nx] + VALUE[OPPOSITE[direction]]
+          return nx, ny
+        end
+      end
+    end
+  end
+
+  return nil, nil
+end
+
+function Maze:generate()
+  local grid = array.create(self.width / 2, self.height / 2, function(x, y)
+      return 0
+    end)
+  
+  local x, y = love.math.random(self.width), love.math.random(self.height)
+  while true do
+    x, y = walk(grid, x, y)
+    if not x then
+      x, y = hunt(grid)
+      if not x then
+        break
+      end
+    end
+  end
+end
+
 function Maze:spawn_emitter(id, x, y, radius, energy, duration)
   local emitter = Emitter.new()
   emitter:initialize(x, y, radius, energy, duration)
