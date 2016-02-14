@@ -30,7 +30,8 @@ local utils = require('lib.utils')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local game = {
-  maze = nil
+  maze = nil,
+  position = { x = 8, y = 8 }
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -53,35 +54,37 @@ function game:leave()
 end
 
 function game:update(dt)
-  self.maze:update(dt)
-
   local keys, has_input = utils.grab_input({ 'up', 'down', 'left', 'right' })
 
-  local emitter = self.maze:get_emitter('player')
+  local position = self.position
   if keys['up'] then
-    emitter.y = emitter.y - 1
-    if emitter.y < 1 then
-      emitter.y = 1
+    position.y = position.y - 3 * dt
+    if position.y < 1 then
+      position.y = 1
     end
   end
   if keys['down'] then
-    emitter.y = emitter.y + 1
-    if emitter.y > constants.MAZE_HEIGHT then
-      emitter.y = constants.MAZE_HEIGHT
+    position.y = position.y + 3 * dt
+    if position.y > constants.MAZE_HEIGHT then
+      position.y = constants.MAZE_HEIGHT
     end
   end
   if keys['left'] then
-    emitter.x = emitter.x - 1
-    if emitter.x < 1 then
-      emitter.x = 1
+    position.x = position.x - 3 * dt
+    if position.x < 1 then
+      position.x = 1
     end
   end
   if keys['right'] then
-    emitter.x = emitter.x + 1
-    if emitter.x > constants.MAZE_WIDTH then
-      emitter.x = constants.MAZE_WIDTH
+    position.x = position.x + 3 * dt
+    if position.x > constants.MAZE_WIDTH then
+      position.x = constants.MAZE_WIDTH
     end
   end
+
+  local emitter = self.maze:get_emitter('player')
+  emitter:set_position(math.floor(position.x), math.floor(position.y))
+  self.maze:update(dt)
 
   return nil
 end

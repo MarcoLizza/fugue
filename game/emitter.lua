@@ -59,26 +59,19 @@ function Emitter:initialize(x, y, radius, energy, duration)
   self.duration = duration -- can be "nil" for everlasting emitters
   self.life = 0
   self.alpha = 1.0
-end
-
-function Emitter:influence(x, y)
-  local dx = math.abs(x - self.x)
-  local dy = math.abs(y - self.y)
-  if dx > self.radius or dy > self.radius then
-    return false
-  end
-  return true
+  self.beta = energy
 end
 
 function Emitter:energy_at(x, y)
   local dx = math.abs(x - self.x)
   local dy = math.abs(y - self.y)
-  -- We could use the squared value, but it won't be a linear progression.
+  -- We could use the squared value, but it won't be a linear progression. It seems to be
+  -- quite similiar to the way light is cast from a real source.
   local distance = math.sqrt(dx * dx + dy * dy)
   if distance > self.radius then
     return 0
   end
-  return (1 - (distance / self.radius)) * self.energy * self.alpha -- FIXME: the latter can be precalculated
+  return (1 - (distance / self.radius)) * self.beta
 end
 
 function Emitter:update(dt)
@@ -90,6 +83,7 @@ function Emitter:update(dt)
         self.life = self.duration
       end
       self.alpha = 1 - (self.life / self.duration)
+      self.beta = self.energy * self.alpha
     end
   end
 end

@@ -55,7 +55,11 @@ end
 
 function Maze:initialize(width, height)
   self.visibility = array.create(width, height, function(x, y)
-      return (x + y) % 4 == 0 and false or true
+      if x % 15 == 0 and y % 4 == 0 then
+        return false
+      else
+        return true
+      end
     end)
 
   self.energy = array.create(width, height, function(x, y)
@@ -128,21 +132,35 @@ function Maze:update(dt)
     self.emitters[id] = nil
   end
 
-  -- Update the energy map.
+  -- Reset the energy-map. Here we should also teke into account the non-changing
+  -- parts of the map.
   for y = 1, self.height do
     for x = 1, self.width do
-      local energy = 0
-      for _, emitter in pairs(self.emitters) do
-        if emitter:influence(x, y) then
-          if self:raycast(emitter.x, emitter.y, x, y,
-            function(x, y)
-              return self.visibility[y][x]
-            end) then
-            energy = energy + emitter:energy_at(x, y)
-          end
+      self.energy[y][x] = 0
+    end
+  end
+  
+  -- Scan each emitter and, inside the bounding rectangle, calculate tha influence
+  -- sphere. Sum the result to the energy-map.
+  for _, emitter in pairs(self.emitters) do
+    local left = emitter.x - emitter.radius
+    if left < 1 then left = 1 end
+    local top = emitter.y - emitter.radius
+    if top < 1 then top = 1 end
+    local right = emitter.x + emitter.radius
+    if right > self.width then right = self.width end
+    local bottom = emitter.y + emitter.radius
+    if bottom > self.height then bottom = self.height end
+    
+    for y = top, bottom do
+      for x = left, right do
+        if self:raycast(emitter.x, emitter.y, x, y,
+          function(x, y)
+            return self.visibility[y][x]
+          end) then
+          self.energy[y][x] = self.energy[y][x] + emitter:energy_at(x, y)
         end
       end
-      self.energy[y][x] = energy
     end
   end
 end

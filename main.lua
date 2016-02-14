@@ -55,7 +55,9 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.update(dt)
+  local start = love.timer.getTime()
   stateful:update(dt)
+  _time = love.timer.getTime() - start
 end
 
 function love.draw()
@@ -66,7 +68,7 @@ function love.draw()
 
   love.graphics.pop()
   
-  love.graphics.print(love.timer.getFPS(), 0, 0)
+  love.graphics.print(love.timer.getFPS() .. '|' .. _time, 0, 0)
 end
 
 -- END OF FILE -----------------------------------------------------------------
