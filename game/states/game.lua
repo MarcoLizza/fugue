@@ -91,13 +91,21 @@ end
 
 function game:draw()
   self.maze:scan(function(x, y, visibility, energy)
+    local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
+    local color = visibility and 63 or 15
+    love.graphics.setColor(color, color, color)
+    love.graphics.rectangle('fill', sx, sy,
+      constants.CELL_WIDTH, constants.CELL_HEIGHT)
+  end)
+
+  self.maze:scan(function(x, y, visibility, energy)
       local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-      local hue = visibility and 255 or 0
-      local color = math.floor(hue * energy)
-      love.graphics.setColor(color, color, color)
+      local color = math.floor(255 * energy)
+      love.graphics.setColor(255, 255, 255, color)
       love.graphics.rectangle('fill', sx, sy,
         constants.CELL_WIDTH, constants.CELL_HEIGHT)
     end)
+
   love.graphics.setColor(255, 255, 255)
 end
 

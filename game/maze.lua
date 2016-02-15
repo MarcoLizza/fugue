@@ -55,11 +55,7 @@ end
 
 function Maze:initialize(width, height)
   self.visibility = array.create(width, height, function(x, y)
-      if x % 15 == 0 and y % 4 == 0 then
-        return false
-      else
-        return true
-      end
+      return false
     end)
 
   self.energy = array.create(width, height, function(x, y)
@@ -68,6 +64,8 @@ function Maze:initialize(width, height)
 
   self.width = width
   self.height = height
+  
+  self:generate()
 end
 
 local DELTAX = {
@@ -83,11 +81,11 @@ local VALUE = {
   n = 1, s = 2, e = 4, w = 8,
 }
 
-local function walk(grid, x, y)
+local function walk(grid, width, height, x, y)
   local directions = array.shuffle({ 'n', 's', 'e', 'w' })
   for _, direction in ipairs(directions) do
     local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-    if nx >= 1 and ny >= 1 and ny <= #grid and nx <= #grid[ny] and grid[ny][nx] == 0 then
+    if nx >= 1 and ny >= 1 and ny <= height and nx <= width and grid[ny][nx] == 0 then
       grid[y][x] = grid[y][x] + VALUE[direction]
       grid[ny][nx] = grid[ny][nx] + VALUE[OPPOSITE[direction]]
       return nx, ny
@@ -97,11 +95,10 @@ local function walk(grid, x, y)
 end
 
 
-local function hunt(grid)
-  for y = 1, #grid do
-    for x = 1, #grid[y] do
-      local cell = grid[y][x]
-      if cell == 0 then -- unvisited cell
+local function hunt(grid, width, height)
+  for y = 1, height do
+    for x = 1, width do
+      if grid[y][x] == 0 then -- unvisited cell
         local neighbours = {}
         if y > 1 and grid[y - 1][x] ~= 0 then
           neighbours[#neighbours + 1] = 'n'
@@ -109,10 +106,10 @@ local function hunt(grid)
         if x > 1 and grid[y][x - 1] ~= 0 then
           neighbours[#neighbours + 1] = 'w'
         end
-        if x + 1 < #grid[y] and grid[y][x + 1] ~= 0 then
+        if x + 1 < width and grid[y][x + 1] ~= 0 then
           neighbours[#neighbours + 1] = 'e'
         end
-        if y + 1 < #grid and grid[y + 1][x] ~= 0 then
+        if y + 1 < height and grid[y + 1][x] ~= 0 then
           neighbours[#neighbours + 1] = 's'
         end
         if #neighbours > 0 then -- at least a valid neighbour
@@ -130,17 +127,43 @@ local function hunt(grid)
 end
 
 function Maze:generate()
-  local grid = array.create(self.width / 2, self.height / 2, function(x, y)
+  local width, height = self.width / 2, self.height / 2
+  local grid = array.create(width, height, function(x, y)
       return 0
     end)
   
-  local x, y = love.math.random(self.width), love.math.random(self.height)
+  local x, y = love.math.random(width), love.math.random(height)
   while true do
-    x, y = walk(grid, x, y)
+    x, y = walk(grid, width, height, x, y)
     if not x then
-      x, y = hunt(grid)
+      x, y = hunt(grid, width, height)
       if not x then
         break
+      end
+    end
+  end
+  
+  for y = 1, height do
+    local yy = y * 2
+    for x = 1, width do
+      local xx = x * 2
+      self.visibility[yy][xx] = true
+      local value = grid[y][x]
+      if value >= 8 then
+        self.visibility[yy][xx - 1] = true
+        value = value - 8
+      end
+      if value >= 4 then
+        self.visibility[yy][xx + 1] = true
+        value = value - 4
+      end
+      if value >= 2 then
+        self.visibility[yy + 1][xx] = true
+        value = value - 2
+      end
+      if value >= 1 then
+        self.visibility[yy - 1][xx] = true
+        value = value - 1
       end
     end
   end

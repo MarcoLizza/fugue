@@ -34,8 +34,8 @@ local constants = {
 
 constants.IDENTITY = 'void'
 
-constants.MAZE_WIDTH = 64
-constants.MAZE_HEIGHT = 48
+constants.MAZE_WIDTH = 65
+constants.MAZE_HEIGHT = 49
 
 constants.CELL_WIDTH = 8
 constants.CELL_HEIGHT = 8

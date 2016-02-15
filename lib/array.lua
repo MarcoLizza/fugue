@@ -37,6 +37,26 @@ function array.create(width, height, filler)
   return array
 end
 
+-- Durstenfeld 
+function array.shuffle_in_place(table)
+  for i = #table, 2, -1 do
+    local j = love.math.random(i)
+    table[i], table[j] = table[j], table[i]
+  end
+end
+
+function array.shuffle(input)
+  local output = {}
+  for i = 1, #input do
+    local j = love.math.random(i)
+    if i ~= j then -- could be omitted
+      output[i] = output[j]
+    end
+    output[j] = input[i]
+  end
+  return output
+end
+
 -- END OF MODULE ---------------------------------------------------------------
 
 return array
