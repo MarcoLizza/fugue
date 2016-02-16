@@ -126,6 +126,38 @@ local function hunt(grid, width, height)
   return nil, nil
 end
 
+local function overlaps(a, b)
+  if a.right < b.left or a.left > b.right or a.bottom < b.top or a.top > b.bottom then
+    return false
+  else
+    return true
+  end
+end
+
+function Maze:generate_rooms(amount, min, max, margin, retries)
+  local rooms = {}
+  for _ = 1, retries do
+    local width, height = love.math.random(min, max) * 2, love.math.random(min, max) * 2
+    local left, top = love.math.random(margin, self.width - width - margin), love.math.random(margin, self.height - height - margin)
+    local right, bottom = left + width, top + height
+    local room = { left = left, top = top, right = right, bottom = bottom }
+    local overlapping = false
+    for _, other in ipairs(rooms) do
+      if overlaps(room, other) then
+        overlapping = true
+        break
+      end
+    end
+    if not overlapping then
+      rooms[#rooms + 1] = room
+      if #rooms == amount then
+        break
+      end
+    end
+  end
+  return rooms
+end
+
 function Maze:generate()
   local width, height = self.width / 2, self.height / 2
   local grid = array.create(width, height, function(x, y)
@@ -164,6 +196,16 @@ function Maze:generate()
       if value >= 1 then
         self.visibility[yy - 1][xx] = true
         value = value - 1
+      end
+    end
+  end
+
+  local rooms = self:generate_rooms(10000, 1, 5, 3, 10)
+
+  for _, room in ipairs(rooms) do
+    for y = room.top, room.bottom do
+      for x = room.left, room.right do
+        self.visibility[y][x] = true
       end
     end
   end
