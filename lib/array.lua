@@ -38,10 +38,10 @@ function array.create(width, height, filler)
 end
 
 -- Durstenfeld 
-function array.shuffle_in_place(table)
-  for i = #table, 2, -1 do
+function array.shuffle_in_place(array)
+  for i = #array, 2, -1 do
     local j = love.math.random(i)
-    table[i], table[j] = table[j], table[i]
+    array[i], array[j] = array[j], array[i]
   end
 end
 
@@ -55,6 +55,23 @@ function array.shuffle(input)
     output[j] = input[i]
   end
   return output
+end
+
+function array.contains(array, value)
+  for _, v in ipairs(array) do
+    if v == value then
+      return true
+    end
+  end
+  return false
+end
+
+function array.remove(array, value)
+  for k, v in ipairs(array) do
+    if v == value then
+      table.remove(array, k)
+    end
+  end
 end
 
 -- END OF MODULE ---------------------------------------------------------------
