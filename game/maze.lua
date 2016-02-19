@@ -23,6 +23,7 @@ freely, subject to the following restrictions:
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
 local Emitter = require('game.emitter')
+local generator = require('game.generator')
 local array = require('lib.array')
 
 -- MODULE DECLARATION ----------------------------------------------------------
@@ -69,132 +70,12 @@ function Maze:initialize(width, height)
 end
 
 local DELTAX = {
-  n = 0, s = 0, e = 1, w = -1,
-}
-local DELTAY = {
-  n = -1, s = 1, e = 0, w = 0,
-}
-local OPPOSITE = {
-  n = 's', s = 'n', e = 'w', w = 'e',
-}
-
-
-local function walk(grid, width, height, x, y)
-  local directions = array.shuffle({ 'n', 's', 'e', 'w' })
-  for _, direction in ipairs(directions) do
-    local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-    if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] == 0 then
-      table.insert(grid[y][x], direction)
-      table.insert(grid[ny][nx], OPPOSITE[direction])
-      return nx, ny
-    end
-  end
-  return nil, nil
-end
-
-
-local function hunt(grid, width, height)
-  for y = 1, height do
-    for x = 1, width do
-      if #grid[y][x] == 0 then -- unvisited cell
-        local neighbours = {}
-        if y > 1 and #grid[y - 1][x] > 0 then
-          table.insert(neighbours, 'n')
-        end
-        if x > 1 and #grid[y][x - 1] > 0 then
-          table.insert(neighbours, 'w')
-        end
-        if x + 1 < width and #grid[y][x + 1] > 0 then
-          table.insert(neighbours, 'e')
-        end
-        if y + 1 < height and #grid[y + 1][x] > 0 then
-          table.insert(neighbours, 's')
-        end
-        if #neighbours > 0 then -- at least a valid neighbour
-          local direction = neighbours[love.math.random(#neighbours)]
-          local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-          table.insert(grid[y][x], direction)
-          table.insert(grid[ny][nx], OPPOSITE[direction])
-          return nx, ny
-        end
-      end
-    end
-  end
-
-  return nil, nil
-end
-
-local function reduce(grid, width, height, amount)
-  while true do
---    local oy = love.math.random(height)
-    for y = 1, height do
-      for x = 1, width do
-        if #grid[y][x] == 1 then
-          local direction = grid[y][x][1]
-          local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-          grid[y][x] = {}
-          array.remove(grid[ny][nx], OPPOSITE[direction])
-          amount = amount - 1
-          if amount == 0 then
-            return
-          end
-        end
-      end
-    end
-  end
-end
-
-local function overlaps(a, b)
-  if a.right < b.left or a.left > b.right or a.bottom < b.top or a.top > b.bottom then
-    return false
-  else
-    return true
-  end
-end
-
-function Maze:generate_rooms(amount, min, max, margin, retries)
-  local rooms = {}
-  for _ = 1, retries do
-    local width, height = love.math.random(min, max) * 2, love.math.random(min, max) * 2
-    local left, top = love.math.random(margin, self.width - width - margin), love.math.random(margin, self.height - height - margin)
-    local right, bottom = left + width, top + height
-    local room = { left = left, top = top, right = right, bottom = bottom }
-    local overlapping = false
-    for _, other in ipairs(rooms) do
-      if overlaps(room, other) then
-        overlapping = true
-        break
-      end
-    end
-    if not overlapping then
-      rooms[#rooms + 1] = room
-      if #rooms == amount then
-        break
-      end
-    end
-  end
-  return rooms
-end
-
 function Maze:generate()
   local width, height = self.width / 2, self.height / 2
-  local grid = array.create(width, height, function(x, y)
-      return {}
-    end)
   
-  local x, y = love.math.random(width), love.math.random(height)
-  while true do
-    x, y = walk(grid, width, height, x, y)
-    if not x then
-      x, y = hunt(grid, width, height)
-      if not x then
-        break
-      end
-    end
-  end
-  
-  reduce(grid, width, height, 250)
-  
+  local grid = generator.generate(width, height)
+
+  -- expand
   for y = 1, height do
     local yy = y * 2
     for x = 1, width do
@@ -217,16 +98,6 @@ function Maze:generate()
       end
     end
   end
-
---  local rooms = self:generate_rooms(10000, 1, 5, 3, 10)
-
---  for _, room in ipairs(rooms) do
---    for y = room.top, room.bottom do
---      for x = room.left, room.right do
---        self.visibility[y][x] = true
---      end
---    end
---  end
 end
 
 function Maze:spawn_emitter(id, x, y, radius, energy, duration)
