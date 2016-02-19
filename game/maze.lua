@@ -69,7 +69,6 @@ function Maze:initialize(width, height)
   self:generate()
 end
 
-local DELTAX = {
 function Maze:generate()
   local width, height = self.width / 2, self.height / 2
   
