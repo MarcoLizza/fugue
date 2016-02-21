@@ -98,6 +98,21 @@ function Maze:generate()
       end
     end
   end
+  
+  -- Fill
+  for y = 1, self.height do
+    for x = 1, self.width do
+      local has_west = x > 1 and self.visibility[y][x - 1]
+      local has_east = x < self.width and self.visibility[y][x + 1]
+      local has_south = y < self.height and self.visibility[y + 1][x]
+      local has_north = y > 1 and self.visibility[y - 1][x]
+      
+      if not self.visibility[y][x] and has_west and has_east and has_south and has_north then
+        self.visibility[y][x] = true
+      end
+    end
+  end
+  
 end
 
 function Maze:spawn_emitter(id, x, y, radius, energy, duration)
