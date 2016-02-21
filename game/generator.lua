@@ -107,20 +107,6 @@ local function hunt(grid, width, height)
   return nil, nil
 end
 
-local function reduce(grid, width, height, amount)
-  while true do
---    local oy = love.math.random(height)
-    for y = 1, height do
-      for x = 1, width do
-        if #grid[y][x] == 1 then
-          local direction = grid[y][x][1]
-          local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-          grid[y][x] = {}
-          array.remove(grid[ny][nx], OPPOSITE[direction])
-          amount = amount - 1
-          if amount == 0 then
-            return
-          end
         end
       end
     end
@@ -145,8 +131,6 @@ function generator.generate(width, height)
       end
     end
   end
-
---  reduce(grid, width, height, 250)
 
   return grid
 end
