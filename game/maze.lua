@@ -70,7 +70,6 @@ function Maze:initialize(width, height)
 end
 
 function Maze:generate()
-  local width, height = self.width / 2, self.height / 2
   local width, height = (self.width - 1) / 2, (self.height - 1) / 2
   
   local grid = generator.generate(width, height)
