@@ -58,7 +58,25 @@ local function walk(grid, width, height, x, y)
   return nil, nil
 end
 
+local function randomize_step()
+  local try = love.math.random(100)
+  if try < 51 then
+    return -1
+  else
+    return 1
+  end
+end
+
 local function hunt(grid, width, height)
+--  local step_x = randomize_step()
+--  local from_x = step_x == 1 and 1 or width
+--  local to_x = step_x == 1 and width or 1
+--  local step_y = randomize_step()
+--  local from_y = step_y == 1 and 1 or height
+--  local to_y = step_y == 1 and height or 1
+  
+--  for y = from_y, to_y, step_y do
+--    for x = from_x, to_x, step_x do
   for y = 1, height do
     for x = 1, width do
       if #grid[y][x] == 0 then -- unvisited cell
@@ -69,10 +87,10 @@ local function hunt(grid, width, height)
         if x > 1 and #grid[y][x - 1] > 0 then
           table.insert(neighbours, 'w')
         end
-        if x + 1 < width and #grid[y][x + 1] > 0 then
+        if x < width and #grid[y][x + 1] > 0 then
           table.insert(neighbours, 'e')
         end
-        if y + 1 < height and #grid[y + 1][x] > 0 then
+        if y < height and #grid[y + 1][x] > 0 then
           table.insert(neighbours, 's')
         end
         if #neighbours > 0 then -- at least a valid neighbour
