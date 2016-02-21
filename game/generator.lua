@@ -140,7 +140,58 @@ function generator.braid(grid, width, height)
   end
 end
 
+-- Recursive backtracker generator (stack based).
 function generator.generate(width, height)
+  local grid = array.create(width, height, function(x, y)
+      return {}
+    end)
+
+  local queue = { { x = love.math.random(width), y = love.math.random(height) } }
+  local cell = nil
+
+  while #queue > 0 do
+    -- Current cell is not set, so we are going to pop-it from the stack.
+    if not cell then
+      cell = table.remove(queue)
+    end
+    local x, y = cell.x, cell.y
+
+    -- Find any unvisited neighbours of the current cell.
+    local neighbours = {}
+    if y > 1 and #grid[y - 1][x] == 0 then
+      table.insert(neighbours, 'n')
+    end
+    if x > 1 and #grid[y][x - 1] == 0 then
+      table.insert(neighbours, 'w')
+    end
+    if x < width and #grid[y][x + 1] == 0 then
+      table.insert(neighbours, 'e')
+    end
+    if y < height and #grid[y + 1][x] == 0 then
+      table.insert(neighbours, 's')
+    end
+
+    -- If the cell has some valid neighbours...
+    if #neighbours > 0 then
+      -- ... push it into the stack (as we might fork from it later).
+      table.insert(queue, cell)
+      -- Pick a random neighbour and carve a passage to it.
+      local direction = neighbours[love.math.random(#neighbours)]
+      local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+      table.insert(grid[y][x], direction)
+      table.insert(grid[ny][nx], OPPOSITE[direction])
+      -- Update the current cell, moving to the neighbour.
+      cell = { x = nx, y = ny }
+    else
+      -- Request a new cell from the stack.
+      cell = nil
+    end
+  end
+
+  return grid
+end
+
+function generator.generate_hak(width, height)
   local grid = array.create(width, height, function(x, y)
       return {}
     end)
