@@ -73,6 +73,7 @@ function Maze:generate()
   local width, height = (self.width - 1) / 2, (self.height - 1) / 2
   
   local grid = generator.generate(width, height)
+  generator.braid(grid, width, height)
 
   -- expand
   for y = 1, height do

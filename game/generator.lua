@@ -107,13 +107,38 @@ local function hunt(grid, width, height)
   return nil, nil
 end
 
+-- MODULE FUNCTIONS ------------------------------------------------------------
+
+function generator.braid(grid, width, height)
+  for y = 1, height do
+    for x = 1, width do
+      if #grid[y][x] == 1 then -- found a dead-end
+        local source = grid[y][x][1] -- from whence we are coming?
+        -- Find the available neighbours, excluding the edge and the source
+        -- cell.
+        local neighbours = {}
+        if y > 1 and source ~= 'n' then
+          table.insert(neighbours, 'n')
         end
+        if x > 1 and source ~= 'w'  then
+          table.insert(neighbours, 'w')
+        end
+        if x < width and source ~= 'e'  then
+          table.insert(neighbours, 'e')
+        end
+        if y < height and source ~= 's'  then
+          table.insert(neighbours, 's')
+        end
+        
+        -- Carve a passage to a random picked neighbour.
+        local direction = neighbours[love.math.random(#neighbours)]
+        local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+        table.insert(grid[y][x], direction)
+        table.insert(grid[ny][nx], OPPOSITE[direction])
       end
     end
   end
 end
-
--- MODULE FUNCTIONS ------------------------------------------------------------
 
 function generator.generate(width, height)
   local grid = array.create(width, height, function(x, y)
