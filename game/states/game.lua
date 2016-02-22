@@ -25,18 +25,22 @@ freely, subject to the following restrictions:
 local constants = require('game.constants')
 local Emitter = require('game.emitter')
 local Maze = require('game.maze')
-local utils = require('lib.utils')
+local Input = require('lib.input')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local game = {
   maze = nil,
-  position = { x = 8, y = 8 }
+  position = { x = 8, y = 8 },
+  input = nil
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function game:initialize()
+  self.input = Input.new()
+  self.input:initialize({ 'up', 'down', 'left', 'right' }, 0.2)
+  
   self.maze = Maze.new()
   self.maze:initialize(constants.MAZE_WIDTH, constants.MAZE_HEIGHT)
 
@@ -53,37 +57,47 @@ function game:leave()
   self.maze = nil
 end
 
-function game:update(dt)
-  local keys, has_input = utils.grab_input({ 'up', 'down', 'left', 'right' })
-
-  local position = self.position
+function game:events(dt)
+  local keys, has_input = self.input:update(dt)
+  if not has_input then
+    return
+  end
+  
+  local dx, dy = 0, 0 -- find the delta movement
   if keys['up'] then
-    position.y = position.y - 3 * dt
-    if position.y < 1 then
-      position.y = 1
-    end
+    dy = dy - 1
   end
   if keys['down'] then
-    position.y = position.y + 3 * dt
-    if position.y > constants.MAZE_HEIGHT then
-      position.y = constants.MAZE_HEIGHT
-    end
+    dy = dy + 1
   end
   if keys['left'] then
-    position.x = position.x - 3 * dt
-    if position.x < 1 then
-      position.x = 1
-    end
+    dx = dx - 1
   end
   if keys['right'] then
-    position.x = position.x + 3 * dt
-    if position.x > constants.MAZE_WIDTH then
-      position.x = constants.MAZE_WIDTH
-    end
+    dx = dx + 1
+  end
+
+  -- Compute the new position by checking the map walkability. Note that we
+  -- don't need to check the boundaries since the map features a non-walkable
+  -- border that force the player *inside* the map itself.
+  local position = self.position
+  local nx, ny = position.x + dx, position.y + dy
+  if self.maze:is_walkable(nx, ny) then
+    position.x = nx
+    position.y = ny
+  elseif self.maze:is_walkable(position.x, ny) then
+    position.y = ny
+  elseif self.maze:is_walkable(nx, position.y) then
+    position.x = nx
   end
 
   local emitter = self.maze:get_emitter('player')
   emitter:set_position(math.floor(position.x), math.floor(position.y))
+end
+
+function game:update(dt)
+  self:events(dt)
+
   self.maze:update(dt)
 
   return nil
