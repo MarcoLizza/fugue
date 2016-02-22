@@ -38,6 +38,78 @@ local Maze = {
   energy = nil
 }
 
+-- LOCAL VARIABLES -------------------------------------------------------------
+
+local patterns = {
+  {
+    matched = {
+      { dx = -1, dy = -1, value = true }, -- 111    111
+      { dx =  0, dy = -1, value = true }, -- 101 >> 111
+      { dx =  1, dy = -1, value = true }, -- 111    111
+      { dx = -1, dy =  0, value = true },
+      { dx =  0, dy =  0, value = false },
+      { dx =  1, dy =  0, value = true },
+      { dx = -1, dy =  1, value = true },
+      { dx =  0, dy =  1, value = true },
+      { dx =  1, dy =  1, value = true }
+    },
+    filled = {
+      { dx = 0, dy = 0 }
+    },
+    value = true
+  },
+  {
+    matched = {
+      { dx = -1, dy = -1, value = true }, -- 11111    11111
+      { dx =  0, dy = -1, value = true }, -- 10001 >> 11111
+      { dx =  1, dy = -1, value = true }, -- 11111    11111
+      { dx =  2, dy = -1, value = true },
+      { dx =  3, dy = -1, value = true },
+      { dx = -1, dy =  0, value = true },
+      { dx =  0, dy =  0, value = false },
+      { dx =  1, dy =  0, value = false },
+      { dx =  2, dy =  0, value = false },
+      { dx =  3, dy =  0, value = true },
+      { dx = -1, dy =  1, value = true },
+      { dx =  0, dy =  1, value = true },
+      { dx =  1, dy =  1, value = true },
+      { dx =  2, dy =  1, value = true },
+      { dx =  3, dy =  1, value = true }
+    },
+    filled = {
+      { dx = 0, dy = 0 },
+      { dx = 1, dy = 0 },
+      { dx = 2, dy = 0 }
+    },
+    value = true
+  },
+  {
+    matched = {
+      { dx = -1, dy = -1, value = true },  -- 111    111
+      { dx =  0, dy = -1, value = true },  -- 101    111
+      { dx =  1, dy = -1, value = true },  -- 101 >> 111
+      { dx = -1, dy =  0, value = true },  -- 101    111
+      { dx =  0, dy =  0, value = false }, -- 111    111
+      { dx =  1, dy =  0, value = true },
+      { dx = -1, dy =  1, value = true },
+      { dx =  0, dy =  1, value = false },
+      { dx =  1, dy =  1, value = true },
+      { dx = -1, dy =  2, value = true },
+      { dx =  0, dy =  2, value = false },
+      { dx =  1, dy =  2, value = true },
+      { dx = -1, dy =  3, value = true },
+      { dx =  0, dy =  3, value = true },
+      { dx =  1, dy =  3, value = true }
+    },
+    filled = {
+      { dx = 0, dy = 0 },
+      { dx = 0, dy = 1 },
+      { dx = 0, dy = 2 }
+    },
+    value = true
+  }
+}
+
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
 
 Maze.__index = Maze
@@ -50,6 +122,33 @@ function Maze.new(params)
     end
   end
   return self
+end
+
+-- LOCAL FUNCTIONS -------------------------------------------------------------
+
+local function fill(map, width, height, pattern)
+  for y = 1, height do
+    for x = 1, width do
+      if map[y][x] ~= pattern.value then
+        local fill = true
+        for _, matched in ipairs(pattern.matched) do
+          local nx, ny = x + matched.dx, y + matched.dy
+          if nx >= 1 and ny >= 1 and nx <= width and ny <= height then
+            if map[ny][nx] ~= matched.value then
+              fill = false
+              break
+            end
+          end
+        end
+        if fill then
+          for _, filled in ipairs(pattern.filled) do
+            local nx, ny = x + filled.dx, y + filled.dy
+            map[ny][nx] = pattern.value
+          end
+        end
+      end
+    end
+  end
 end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -99,20 +198,10 @@ function Maze:generate()
     end
   end
   
-  -- Fill
-  for y = 1, self.height do
-    for x = 1, self.width do
-      local has_west = x > 1 and self.visibility[y][x - 1]
-      local has_east = x < self.width and self.visibility[y][x + 1]
-      local has_south = y < self.height and self.visibility[y + 1][x]
-      local has_north = y > 1 and self.visibility[y - 1][x]
-      
-      if not self.visibility[y][x] and has_west and has_east and has_south and has_north then
-        self.visibility[y][x] = true
-      end
-    end
+  -- Seek selected patterns and fill the map.
+  for _, pattern in ipairs(patterns) do
+    fill(self.visibility, self.width, self.height, pattern)
   end
-  
 end
 
 function Maze:spawn_emitter(id, x, y, radius, energy, duration)
