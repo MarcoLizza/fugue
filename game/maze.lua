@@ -34,7 +34,7 @@ local Maze = {
   height = nil,
   -- PROPERTIES --
   emitters = {},
-  visibility = nil,
+  cells = nil,
   energy = nil
 }
 
@@ -126,15 +126,48 @@ end
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
-local function fill(map, width, height, pattern)
+local function clear(cells, width, height)
   for y = 1, height do
     for x = 1, width do
-      if map[y][x] ~= pattern.value then
+      cells[y][x] = false
+    end
+  end
+end
+
+local function expand(cells, grid, width, height)
+  for y = 1, height do
+    local yy = y * 2
+    for x = 1, width do
+      local xx = x * 2
+      local directions = grid[y][x]
+      if #directions > 0 then
+        cells[yy][xx] = true
+        if array.contains(directions, 'w') then
+          cells[yy][xx - 1] = true
+        end
+        if array.contains(directions, 'e') then
+          cells[yy][xx + 1] = true
+        end
+        if array.contains(directions, 's') then
+          cells[yy + 1][xx] = true
+        end
+        if array.contains(directions, 'n') then
+          cells[yy - 1][xx] = true
+        end
+      end
+    end
+  end
+end
+
+local function fill(cells, width, height, pattern)
+  for y = 1, height do
+    for x = 1, width do
+      if cells[y][x] ~= pattern.value then
         local fill = true
         for _, matched in ipairs(pattern.matched) do
           local nx, ny = x + matched.dx, y + matched.dy
           if nx >= 1 and ny >= 1 and nx <= width and ny <= height then
-            if map[ny][nx] ~= matched.value then
+            if cells[ny][nx] ~= matched.value then
               fill = false
               break
             end
@@ -143,7 +176,7 @@ local function fill(map, width, height, pattern)
         if fill then
           for _, filled in ipairs(pattern.filled) do
             local nx, ny = x + filled.dx, y + filled.dy
-            map[ny][nx] = pattern.value
+            cells[ny][nx] = pattern.value
           end
         end
       end
@@ -154,7 +187,7 @@ end
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function Maze:initialize(width, height)
-  self.visibility = array.create(width, height, function(x, y)
+  self.cells = array.create(width, height, function(x, y)
       return false
     end)
 
@@ -164,43 +197,21 @@ function Maze:initialize(width, height)
 
   self.width = width
   self.height = height
-  
-  self:generate()
 end
 
 function Maze:generate()
   local width, height = (self.width - 1) / 2, (self.height - 1) / 2
   
-  local grid = generator.generate(width, height)
+  local grid = generator.generate('hak', width, height)
   generator.braid(grid, width, height)
 
-  -- expand
-  for y = 1, height do
-    local yy = y * 2
-    for x = 1, width do
-      local xx = x * 2
-      local directions = grid[y][x]
-      if #directions > 0 then
-        self.visibility[yy][xx] = true
-        if array.contains(directions, 'w') then
-          self.visibility[yy][xx - 1] = true
-        end
-        if array.contains(directions, 'e') then
-          self.visibility[yy][xx + 1] = true
-        end
-        if array.contains(directions, 's') then
-          self.visibility[yy + 1][xx] = true
-        end
-        if array.contains(directions, 'n') then
-          self.visibility[yy - 1][xx] = true
-        end
-      end
-    end
-  end
+  -- Clear the current map content and expand the generated grid into it.
+  clear(self.cells, self.width, self.height)
+  expand(self.cells, grid, width, height)
   
   -- Seek selected patterns and fill the map.
   for _, pattern in ipairs(patterns) do
-    fill(self.visibility, self.width, self.height, pattern)
+    fill(self.cells, self.width, self.height, pattern)
   end
 end
 
@@ -290,7 +301,7 @@ function Maze:update(dt)
       for x = left, right do
         if self:raycast(emitter.x, emitter.y, x, y,
           function(x, y)
-            return self.visibility[y][x]
+            return self.cells[y][x]
           end) then
           self.energy[y][x] = self.energy[y][x] + emitter:energy_at(x, y)
         end
@@ -299,10 +310,14 @@ function Maze:update(dt)
   end
 end
 
+function Maze:is_walkable(x, y)
+  return self.cells[y][x]
+end
+
 function Maze:scan(callback)
   for y = 1, self.height do
     for x = 1, self.width do
-      callback(x, y, self.visibility[y][x],
+      callback(x, y, self.cells[y][x],
         self.energy[y][x])
     end
   end

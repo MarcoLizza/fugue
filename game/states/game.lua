@@ -51,10 +51,10 @@ function game:initialize()
 end
 
 function game:enter()
+  self.maze:generate()
 end
 
 function game:leave()
-  self.maze = nil
 end
 
 function game:events(dt)
@@ -104,15 +104,15 @@ function game:update(dt)
 end
 
 function game:draw()
-  self.maze:scan(function(x, y, visibility, energy)
+  self.maze:scan(function(x, y, cell, energy)
     local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-    local color = visibility and 63 or 15
+    local color = cell and 63 or 15
     love.graphics.setColor(color, color, color)
     love.graphics.rectangle('fill', sx, sy,
       constants.CELL_WIDTH, constants.CELL_HEIGHT)
   end)
 
-  self.maze:scan(function(x, y, visibility, energy)
+  self.maze:scan(function(x, y, cell, energy)
       local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
       local color = math.floor(255 * energy)
       love.graphics.setColor(255, 255, 255, color)

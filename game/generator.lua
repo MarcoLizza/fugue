@@ -45,6 +45,15 @@ local OPPOSITE = {
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
+local function randomize_step()
+  local try = love.math.random(100)
+  if try < 51 then
+    return -1
+  else
+    return 1
+  end
+end
+
 local function walk(grid, width, height, x, y)
   local directions = array.shuffle({ 'n', 's', 'e', 'w' })
   for _, direction in ipairs(directions) do
@@ -56,15 +65,6 @@ local function walk(grid, width, height, x, y)
     end
   end
   return nil, nil
-end
-
-local function randomize_step()
-  local try = love.math.random(100)
-  if try < 51 then
-    return -1
-  else
-    return 1
-  end
 end
 
 local function hunt(grid, width, height)
@@ -141,7 +141,7 @@ function generator.braid(grid, width, height)
 end
 
 -- Recursive backtracker generator (stack based).
-function generator.generate(width, height)
+function generator.generate_rec(width, height)
   local grid = array.create(width, height, function(x, y)
       return {}
     end)
@@ -209,6 +209,16 @@ function generator.generate_hak(width, height)
   end
 
   return grid
+end
+
+function generator.generate(mode, width, height)
+  if mode == 'hak' then
+    return generator.generate_hak(width, height)
+  elseif mode == 'rec' then
+    return generator.generate_rec(width, height)
+  else
+    return generator.generate_rec(width, height)
+  end
 end
 
 -- END OF MODULE ---------------------------------------------------------------
