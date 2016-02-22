@@ -3,6 +3,6 @@ return {
     fps = false
   },
   display = {
-    scale = 2
+    scale = 3
   }
 }
