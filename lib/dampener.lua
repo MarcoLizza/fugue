@@ -23,7 +23,7 @@ freely, subject to the following restrictions:
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Dampener = {
-  _VERSION = '0.1.0',
+  _VERSION = '0.1.1',
   time = 0,
   delay = 0.5
 }
@@ -32,7 +32,7 @@ local Dampener = {
 
 Dampener.__index = Dampener
 
--- Create a new [Stateful] class instance.
+-- Create a new [Dampener] class instance.
 function Dampener.new()
   local self = setmetatable({}, Dampener)
   return self
@@ -42,7 +42,7 @@ end
 
 function Dampener:initialize(delay)
   self.time = 0
-  self.delay = delay
+  self.delay = delay or 0.25
 end
 
 function Dampener:update(dt)
