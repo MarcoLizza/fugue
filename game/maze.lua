@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
+local config = require('game.config')
 local Emitter = require('game.emitter')
 local generator = require('game.generator')
 local array = require('lib.array')
@@ -200,9 +201,14 @@ function Maze:initialize(width, height)
 end
 
 function Maze:generate()
-  local width, height = (self.width - 1) / 2, (self.height - 1) / 2
-  
-  local grid = generator.generate('hak', width, height)
+  -- The generator will work on a "half-size" version of the maze, since
+  -- we will expand and insert the walls later. Please note that we need
+  -- to ensure the the size not the have a decimal part.
+  local width, height = math.floor(self.width / 2), math.floor(self.height / 2)
+
+  -- Generate the maze, the "braid" the dead-ends. This will be useful,
+  -- later, to crate the rooms.
+  local grid = generator.generate(config.maze.type, width, height)
   generator.braid(grid, width, height)
 
   -- Clear the current map content and expand the generated grid into it.
@@ -288,6 +294,7 @@ function Maze:update(dt)
   -- Scan each emitter and, inside the bounding rectangle, calculate tha influence
   -- sphere. Sum the result to the energy-map.
   for _, emitter in pairs(self.emitters) do
+    -- Compute the emitter bounding rectangle.
     local left = emitter.x - emitter.radius
     if left < 1 then left = 1 end
     local top = emitter.y - emitter.radius
