@@ -36,6 +36,7 @@ local Maze = {
   -- PROPERTIES --
   emitters = {},
   cells = nil,
+  colors = nil,
   energy = nil
 }
 
@@ -127,10 +128,11 @@ end
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
-local function clear(cells, width, height)
+local function clear(colors, cells, width, height)
   for y = 1, height do
     for x = 1, width do
       cells[y][x] = false
+      colors[y][x] = 'undefined'
     end
   end
 end
@@ -185,11 +187,35 @@ local function fill(cells, width, height, pattern)
   end
 end
 
+local function colorize(colors, cells, width, height)
+  for y = 1, height do
+    for x = 1, width do
+      local color = 'undefined'
+      if cells[y][x] then -- visible cell => ground
+        color = 'ground'
+      elseif not cells[y][x] then -- non-visible cell
+        if y < height and cells[y + 1][x] then -- above visible => wall
+          color = 'wall'
+        elseif y < height and not cells[y + 1][x] then -- aboce non-visible => concrete
+          color = 'concrete'
+        else -- last row, simplify with the previous one (TODO)
+          color = 'undefined'
+        end
+      end
+      colors[y][x] = color
+    end
+  end
+end
+
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function Maze:initialize(width, height)
   self.cells = array.create(width, height, function(x, y)
       return false
+    end)
+
+  self.colors = array.create(width, height, function(x, y)
+      return 'undefined'
     end)
 
   self.energy = array.create(width, height, function(x, y)
@@ -212,13 +238,17 @@ function Maze:generate()
   generator.braid(grid, width, height)
 
   -- Clear the current map content and expand the generated grid into it.
-  clear(self.cells, self.width, self.height)
+  clear(self.colors, self.cells, self.width, self.height)
   expand(self.cells, grid, width, height)
   
   -- Seek selected patterns and fill the map.
   for _, pattern in ipairs(patterns) do
     fill(self.cells, self.width, self.height, pattern)
   end
+  
+  -- Scan the maze and generate a "colorized" version of the map, that
+  -- will be used for the final displaying.
+  colorize(self.colors, self.cells, self.width, self.height)
 end
 
 function Maze:spawn_emitter(id, x, y, radius, energy, duration)
@@ -326,8 +356,7 @@ end
 function Maze:scan(callback)
   for y = 1, self.height do
     for x = 1, self.width do
-      callback(x, y, self.cells[y][x],
-        self.energy[y][x])
+      callback(x, y, self.colors[y][x], self.cells[y][x], self.energy[y][x])
     end
   end
 end

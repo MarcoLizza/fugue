@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
+local config = require('game.config')
 local constants = require('game.constants')
 local Emitter = require('game.emitter')
 local Maze = require('game.maze')
@@ -35,6 +36,15 @@ local game = {
   input = nil
 }
 
+-- LOCAL VARIABLES -------------------------------------------------------------
+
+local tints = {
+  ground = { 0x99, 0x88, 0x77, 0 },
+  wall = { 0x77, 0x55, 0x22, 0 },
+  concrete = { 0x44, 0x33, 0x11, 0 },
+  undefined = { 63, 63, 63, 0 }
+}
+
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function game:initialize()
@@ -44,10 +54,10 @@ function game:initialize()
   self.maze = Maze.new()
   self.maze:initialize(constants.MAZE_WIDTH, constants.MAZE_HEIGHT)
 
-  self.maze:spawn_emitter('player', 8, 8, 10, 1)
-  self.maze:spawn_emitter('torch_1', 32, 12, 8, 1)
-  self.maze:spawn_emitter('torch_2', 32, 32, 5, 1, 10)
-  self.maze:spawn_emitter('torch_3', 12, 32, 5, 1, 30)
+  self.maze:spawn_emitter('player', 8, 8, 5, 3)
+  self.maze:spawn_emitter('torch_1', 32, 12, 5, 1)
+  self.maze:spawn_emitter('torch_2', 32, 32, 3, 1, 10)
+  self.maze:spawn_emitter('torch_3', 12, 32, 3, 1, 30)
 end
 
 function game:enter()
@@ -104,21 +114,38 @@ function game:update(dt)
 end
 
 function game:draw()
-  self.maze:scan(function(x, y, cell, energy)
-    local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-    local color = cell and 63 or 15
-    love.graphics.setColor(color, color, color)
-    love.graphics.rectangle('fill', sx, sy,
-      constants.CELL_WIDTH, constants.CELL_HEIGHT)
-  end)
-
-  self.maze:scan(function(x, y, cell, energy)
+  if config.debug.shadows then
+    self.maze:scan(function(x, y, color, cell, energy)
       local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-      local color = math.floor(255 * energy)
-      love.graphics.setColor(255, 255, 255, color)
+      local tint = tints[color]
+      local alpha = math.floor(255 * energy)
+      tint[4] = alpha
+      love.graphics.setColor(tint)
       love.graphics.rectangle('fill', sx, sy,
         constants.CELL_WIDTH, constants.CELL_HEIGHT)
     end)
+  else
+    self.maze:scan(function(x, y, color, cell, energy)
+      local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
+      local tint = cell and 63 or 15
+      love.graphics.setColor(tint, tint, tint)
+      love.graphics.rectangle('fill', sx, sy,
+        constants.CELL_WIDTH, constants.CELL_HEIGHT)
+    end)
+
+    self.maze:scan(function(x, y, color, cell, energy)
+        local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
+        local alpha = math.floor(255 * energy)
+        love.graphics.setColor(127, 127, 0, alpha)
+        love.graphics.rectangle('fill', sx, sy,
+          constants.CELL_WIDTH, constants.CELL_HEIGHT)
+      end)
+  end
+
+  local x, y = (self.position.x - 1) * constants.CELL_WIDTH, (self.position.y - 1) * constants.CELL_WIDTH
+  love.graphics.setColor(255, 127, 127)
+  love.graphics.rectangle('fill', x, y,
+    constants.CELL_WIDTH, constants.CELL_HEIGHT)
 
   love.graphics.setColor(255, 255, 255)
 end
