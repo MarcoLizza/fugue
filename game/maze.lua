@@ -306,9 +306,11 @@ function Maze:update(dt)
     
     for y = top, bottom do
       for x = left, right do
+        -- HACK: If we disable the raycast we get a simple "shadow-dome".
         if self:raycast(emitter.x, emitter.y, x, y,
-          function(x, y)
-            return self.cells[y][x]
+          function(cx, cy)
+            -- The current cell is always visible. (FIXME)
+            return (cx == x and cy == y) or self.cells[cy][cx]
           end) then
           self.energy[y][x] = self.energy[y][x] + emitter:energy_at(x, y)
         end
