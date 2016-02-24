@@ -335,10 +335,16 @@ function Maze:update(dt)
     for y = top, bottom do
       for x = left, right do
         -- HACK: If we disable the raycast we get a simple "shadow-dome".
+        local colliding = 0
         if self:raycast(emitter.x, emitter.y, x, y,
           function(cx, cy)
-            -- The current cell is always visible. (FIXME)
-            return (cx == x and cy == y) or self.cells[cy][cx]
+            if not self.cells[cy][cx] then -- count the occluding cells we encounter
+              colliding = colliding + 1
+            end
+            -- Light the walkable cells while no collisions are detected, and
+            -- also the first non-walkable cell.
+            return (self.cells[cy][cx] and colliding == 0) or
+              (not self.cells[cy][cx] and colliding == 1)
           end) then
           self.energy[y][x] = self.energy[y][x] + emitter:energy_at(x, y)
         end
