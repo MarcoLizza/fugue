@@ -196,10 +196,8 @@ local function colorize(colors, cells, width, height)
       elseif not cells[y][x] then -- non-visible cell
         if y < height and cells[y + 1][x] then -- above visible => wall
           color = 'wall'
-        elseif y < height and not cells[y + 1][x] then -- aboce non-visible => concrete
+        else -- last row AND above non-visible => concrete
           color = 'concrete'
-        else -- last row, simplify with the previous one (TODO)
-          color = 'undefined'
         end
       end
       colors[y][x] = color
