@@ -118,7 +118,7 @@ function game:draw()
     self.maze:scan(function(x, y, color, cell, energy)
       local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
       local tint = tints[color]
-      local alpha = math.floor(255 * energy)
+      local alpha = math.min(math.floor(255 * energy), 255)
       tint[4] = alpha
       love.graphics.setColor(tint)
       love.graphics.rectangle('fill', sx, sy,
@@ -135,8 +135,8 @@ function game:draw()
 
     self.maze:scan(function(x, y, color, cell, energy)
         local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-        local alpha = math.floor(255 * energy)
-        love.graphics.setColor(127, 127, 0, alpha)
+        local alpha = math.min(math.floor(255 * energy), 255)
+        love.graphics.setColor(alpha, alpha, alpha, 127)
         love.graphics.rectangle('fill', sx, sy,
           constants.CELL_WIDTH, constants.CELL_HEIGHT)
       end)

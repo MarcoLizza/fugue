@@ -48,7 +48,11 @@ function love.load(args)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  if key == 'f12' then
+  if key == 'f10' then
+    config.debug.fps = not config.debug.fps
+  elseif key == 'f11' then
+    config.debug.shadows = not config.debug.shadows
+  elseif key == 'f12' then
     local screenshot = love.graphics.newScreenshot()
     screenshot:encode('png', os.time() .. '.png')
   end
@@ -67,8 +71,10 @@ function love.draw()
   stateful:draw()
 
   love.graphics.pop()
-  
-  love.graphics.print(love.timer.getFPS() .. '|' .. _time, 0, 0)
+
+  if config.debug.fps then
+    love.graphics.print(love.timer.getFPS() .. '|' .. _time, 0, 0)
+  end
 end
 
 -- END OF FILE -----------------------------------------------------------------

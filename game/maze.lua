@@ -42,6 +42,12 @@ local Maze = {
 
 -- LOCAL VARIABLES -------------------------------------------------------------
 
+-- This is the list of some selected map patterns that will be filled in order
+-- to build some rooms. The [matched] attribute works much like a "kernel".
+-- [value] is the comparison/finding value, that is we check for the kernel
+-- match only on cells whose value is different from [value]. Then, once the
+-- kernel matches, the [filled] cells are set to [value]. Note that coordinates
+-- are specified as a displacement from the current one (i.e. relative to it).
 local patterns = {
   {
     matched = {
