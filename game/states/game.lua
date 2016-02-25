@@ -22,27 +22,13 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
-local config = require('game.config')
-local constants = require('game.constants')
-local Emitter = require('game.emitter')
-local Maze = require('game.maze')
 local Input = require('lib.input')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local game = {
-  maze = nil,
-  position = { x = 8, y = 8 },
-  input = nil
-}
-
--- LOCAL VARIABLES -------------------------------------------------------------
-
-local tints = {
-  ground = { 0x99, 0x88, 0x77, 0 },
-  wall = { 0x77, 0x55, 0x22, 0 },
-  concrete = { 0x44, 0x33, 0x11, 0 },
-  undefined = { 63, 63, 63, 0 }
+  input = nil,
+  world = require('game.world')
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -51,17 +37,11 @@ function game:initialize()
   self.input = Input.new()
   self.input:initialize({ 'up', 'down', 'left', 'right' }, 0.2)
   
-  self.maze = Maze.new()
-  self.maze:initialize(constants.MAZE_WIDTH, constants.MAZE_HEIGHT)
-
-  self.maze:spawn_emitter('player', 8, 8, 5, 3)
-  self.maze:spawn_emitter('torch_1', 32, 12, 5, 1)
-  self.maze:spawn_emitter('torch_2', 32, 32, 3, 1, 10)
-  self.maze:spawn_emitter('torch_3', 12, 32, 3, 1, 30)
+  self.world:initialize()
 end
 
 function game:enter()
-  self.maze:generate()
+  self.world:generate()
 end
 
 function game:leave()
@@ -72,82 +52,22 @@ function game:events(dt)
   if not has_input then
     return
   end
-  
-  local dx, dy = 0, 0 -- find the delta movement
-  if keys['up'] then
-    dy = dy - 1
-  end
-  if keys['down'] then
-    dy = dy + 1
-  end
-  if keys['left'] then
-    dx = dx - 1
-  end
-  if keys['right'] then
-    dx = dx + 1
-  end
 
-  -- Compute the new position by checking the map walkability. Note that we
-  -- don't need to check the boundaries since the map features a non-walkable
-  -- border that force the player *inside* the map itself.
-  local position = self.position
-  local nx, ny = position.x + dx, position.y + dy
-  if self.maze:is_walkable(nx, ny) then
-    position.x = nx
-    position.y = ny
-  elseif self.maze:is_walkable(position.x, ny) then
-    position.y = ny
-  elseif self.maze:is_walkable(nx, position.y) then
-    position.x = nx
-  end
-
-  local emitter = self.maze:get_emitter('player')
-  emitter:set_position(math.floor(position.x), math.floor(position.y))
+  self.world:events(keys)
 end
 
 function game:update(dt)
+  -- Handle the events, that is mostly the inputs.
   self:events(dt)
 
-  self.maze:update(dt)
+  --
+  self.world:update(dt)
 
   return nil
 end
 
 function game:draw()
-  if config.debug.shadows then
-    self.maze:scan(function(x, y, color, cell, energy)
-      local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-      local tint = tints[color]
-      local alpha = math.min(math.floor(255 * energy), 255)
-      tint[4] = alpha
-      love.graphics.setColor(tint)
-      love.graphics.rectangle('fill', sx, sy,
-        constants.CELL_WIDTH, constants.CELL_HEIGHT)
-    end)
-  else
-    self.maze:scan(function(x, y, color, cell, energy)
-      local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-      local tint = cell and 63 or 15
-      love.graphics.setColor(tint, tint, tint)
-      love.graphics.rectangle('fill', sx, sy,
-        constants.CELL_WIDTH, constants.CELL_HEIGHT)
-    end)
-
-    self.maze:scan(function(x, y, color, cell, energy)
-        local sx, sy = (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-        local alpha = math.min(math.floor(255 * energy), 255)
-        love.graphics.setColor(alpha, alpha, alpha, 127)
-        love.graphics.rectangle('fill', sx, sy,
-          constants.CELL_WIDTH, constants.CELL_HEIGHT)
-      end)
-  end
-
-  local x, y = (self.position.x - 1) * constants.CELL_WIDTH, (self.position.y - 1) * constants.CELL_WIDTH
-  love.graphics.setColor(255, 127, 127)
-  love.graphics.rectangle('fill', x, y,
-    constants.CELL_WIDTH, constants.CELL_HEIGHT)
-
-  love.graphics.setColor(255, 255, 255)
+  self.world:draw()
 end
 
 -- END OF MODULE ---------------------------------------------------------------

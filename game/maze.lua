@@ -363,6 +363,23 @@ function Maze:is_walkable(x, y)
   return self.cells[y][x]
 end
 
+function Maze:energy_at(x, y)
+  return self.energy[y][x]
+end
+
+function Maze:is_visible(a, b, c, d)
+  local x0, y0, x1, y1
+  if type(a) == 'table' and type(b) == 'table' then
+    x0, y0, x1, y1 = a.x, a.y, b.x, b.y
+  else
+    x0, y0, x1, y1 = a, b, c, d
+  end
+  return self:raycast(x0, y0, x1, y1,
+    function(x, y)
+      return self.cells[y][x]
+    end)
+end
+
 function Maze:scan(callback)
   for y = 1, self.height do
     for x = 1, self.width do
