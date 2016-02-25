@@ -166,19 +166,21 @@ function world:generate()
 end
 
 function world:move(point, dx, dy) -- Maze:move_to()
-  local moved = true
-  local nx, ny = point.x + dx, point.y + dy
+  local x, y = point.x, point.y
+  local nx, ny = x + dx, y + dy
   if self.maze:is_walkable(nx, ny) then
     point.x = nx
     point.y = ny
-  elseif self.maze:is_walkable(point.x, ny) then
+  elseif self.maze:is_walkable(x, ny) then
     point.y = ny
-  elseif self.maze:is_walkable(nx, point.y) then
+  elseif self.maze:is_walkable(nx, y) then
     point.x = nx
-  else
-    moved = false
   end
-  return moved
+  return point.x ~= x or point.y ~= y
+end
+
+function world:is_visible(a, b, c, d)
+  return self.maze:is_visible(a, b, c, d)
 end
 
 -- END OF MODULE -------------------------------------------------------------

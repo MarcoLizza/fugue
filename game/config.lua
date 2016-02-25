@@ -4,6 +4,8 @@ return {
     shadows = true
     shadows = true,
     cheat = false
+    cheat = false,
+    details = false
   },
   display = {
     scale = 3

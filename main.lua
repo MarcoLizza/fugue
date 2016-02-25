@@ -48,8 +48,10 @@ function love.load(args)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  if key == 'f10' then
+  if key == 'f9' then
     config.debug.fps = not config.debug.fps
+  elseif key == 'f10' then
+    config.debug.details = not config.debug.details
   elseif key == 'f11' then
     config.debug.shadows = not config.debug.shadows
     config.debug.cheat = not config.debug.cheat

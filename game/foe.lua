@@ -24,6 +24,7 @@ freely, subject to the following restrictions:
 
 local config = require('game.config')
 local constants = require('game.constants')
+local array = require('lib.array')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -31,13 +32,22 @@ local Foe = {
   world = nil,
   position = nil,
   time = nil,
+  dampening = nil,
   state = nil,
-  memory = nil
+  memory = nil,
+  direction = nil
 }
 
 -- LOCAL VARIABLES -------------------------------------------------------------
 
-local _delta = { -1, 0, 1 }
+local _directions = { 'n', 's', 'w', 'e' }
+local _opposites = { n = 's', s = 'n', w = 'e', e = 'w' }
+local _deltas = {
+  n = { x = 0, y = -1 },
+  s = { x = 0, y = 1 },
+  w = { x = -1, y = 0 },
+  e = { x = 1, y = 0 },
+}
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
@@ -85,8 +95,11 @@ function Foe:initialize(world, x, y)
   self.world = world
   self.position = { x = x, y = y }
   self.time = 0
+  self.dampening = 0.5
   self.state = 'roaming'
   self.memory = 0
+  self.direction = _directions[love.math.random(4)]
+  self.target = nil -- if nil the foe is roaming
 end
 
 function Foe:update(dt)
@@ -94,34 +107,56 @@ function Foe:update(dt)
   local avatar = world.entities['avatar']
 
   self.time = self.time + dt -- DAMPENER
-  if self.time < 0.5 then
+  if self.time < self.dampening then
     return
   end
   self.time = 0
 
+  -- If the avatar is spotted, record it's view position.
   if distance(self.position, avatar.position) < 5 and
-      self.maze:is_visible(self.position, avatar.position) then
+      world:is_visible(self.position, avatar.position) then
+    self.target = { x = avatar.position.x, y = avatar.position.y }
     self.state = 'seeking'
     self.memory = 10
+    self.dampening = 0.5
   else
     if self.memory <= 0 then
+      self.target = nil -- will resume moving with the direction in use when the avatar was spotted
       self.state = 'roaming'
+      self.dampening = 0.5
     else
-      self.memory = self.memory - (1 * dt)
+      self.memory = self.memory - 1
     end
   end
 
+  -- If the avatar sightning position is reached, switch to roaming.
   if self.state == 'seeking' then
-    local dx, dy = delta(avatar.position, self.position)
+    local dx, dy = delta(self.target, self.position) -- TODO: pathfinding
     local _ = world:move(self.position, sign(dx), sign(dy))
+    if self.position.x == self.target.x and self.position.y == self.target.y then
+--      self.target = nil
+--      self.state = 'roaming'
+      self.memory = 0
+    end
     return
   end
   
   -- roaming
-  repeat
-    local dx, dy = _delta[love.math.random(3)], _delta[love.math.random(3)]
-    local moved = world:move(self.position, dx, dy)
-  until moved
+  local delta = _deltas[self.direction]
+  local moved = world:move(self.position, delta.x, delta.y)
+  if not moved then
+    local directions = array.shuffle(_directions)
+    for _, direction in ipairs(directions) do
+      if direction ~= _opposites[self.direction] then -- discard the coming direction
+        local delta = _deltas[direction]
+        moved = world:move(self.position, delta.x, delta.y)
+        if moved then
+          self.direction = direction
+          break
+        end
+      end
+    end
+  end
 end
 
 function Foe:draw()
@@ -132,6 +167,16 @@ function Foe:draw()
   love.graphics.setColor(255, 127, 127, alpha)
   love.graphics.rectangle('fill', sx, sy,
     constants.CELL_WIDTH, constants.CELL_HEIGHT)
+  if config.debug.details then
+    love.graphics.setColor(127, 127, 255, alpha)
+    love.graphics.print(string.format("%s %.5f", self.direction, self.memory), sx, sy - 8)
+    if self.target then
+      sx, sy = to_screen(self.target.x, self.target.y)
+      love.graphics.setColor(255, 127, 255, alpha)
+      love.graphics.rectangle('fill', sx, sy,
+        constants.CELL_WIDTH, constants.CELL_HEIGHT)
+    end
+  end
 end
 
 -- END OF MODULE -------------------------------------------------------------
