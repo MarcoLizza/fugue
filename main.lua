@@ -52,6 +52,7 @@ function love.keypressed(key, scancode, isrepeat)
     config.debug.fps = not config.debug.fps
   elseif key == 'f11' then
     config.debug.shadows = not config.debug.shadows
+    config.debug.cheat = not config.debug.cheat
   elseif key == 'f12' then
     local screenshot = love.graphics.newScreenshot()
     screenshot:encode('png', os.time() .. '.png')
