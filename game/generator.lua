@@ -45,15 +45,6 @@ local OPPOSITE = {
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
-local function randomize_step()
-  local try = love.math.random(100)
-  if try < 51 then
-    return -1
-  else
-    return 1
-  end
-end
-
 local function walk(grid, width, height, x, y)
   local directions = array.shuffle({ 'n', 's', 'e', 'w' })
   for _, direction in ipairs(directions) do
@@ -68,37 +59,19 @@ local function walk(grid, width, height, x, y)
 end
 
 local function hunt(grid, width, height)
---  local step_x = randomize_step()
---  local from_x = step_x == 1 and 1 or width
---  local to_x = step_x == 1 and width or 1
---  local step_y = randomize_step()
---  local from_y = step_y == 1 and 1 or height
---  local to_y = step_y == 1 and height or 1
-  
---  for y = from_y, to_y, step_y do
---    for x = from_x, to_x, step_x do
   for y = 1, height do
     for x = 1, width do
-      if #grid[y][x] == 0 then -- unvisited cell
-        local neighbours = {}
-        if y > 1 and #grid[y - 1][x] > 0 then
-          table.insert(neighbours, 'n')
-        end
-        if x > 1 and #grid[y][x - 1] > 0 then
-          table.insert(neighbours, 'w')
-        end
-        if x < width and #grid[y][x + 1] > 0 then
-          table.insert(neighbours, 'e')
-        end
-        if y < height and #grid[y + 1][x] > 0 then
-          table.insert(neighbours, 's')
-        end
-        if #neighbours > 0 then -- at least a valid neighbour
-          local direction = neighbours[love.math.random(#neighbours)]
+      -- We stop on each unvisited cell...
+      if #grid[y][x] == 0 then
+        -- ... and check for a random neighbour already visited.
+        local directions = array.shuffle({ 'n', 's', 'e', 'w' })
+        for _, direction in ipairs(directions) do
           local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-          table.insert(grid[y][x], direction)
-          table.insert(grid[ny][nx], OPPOSITE[direction])
-          return nx, ny
+          if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] > 0 then -- already visited
+            table.insert(grid[y][x], direction)
+            table.insert(grid[ny][nx], OPPOSITE[direction])
+            return nx, ny
+          end
         end
       end
     end
@@ -114,27 +87,18 @@ function generator.braid(grid, width, height)
     for x = 1, width do
       if #grid[y][x] == 1 then -- found a dead-end
         local source = grid[y][x][1] -- from whence we are coming?
-        -- Find the available neighbours, excluding the edge and the source
-        -- cell.
-        local neighbours = {}
-        if y > 1 and source ~= 'n' then
-          table.insert(neighbours, 'n')
+        -- Pick a valid neighbour, excluding the edge and the source cell.
+        local directions = array.shuffle({ 'n', 's', 'e', 'w' })
+        for _, direction in ipairs(directions) do
+          if direction ~= source then -- we are not considering the source
+            local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+            if nx >= 1 and ny >= 1 and ny <= height and nx <= width then
+              table.insert(grid[y][x], direction)
+              table.insert(grid[ny][nx], OPPOSITE[direction])
+              break -- relax this for bigger rooms!!!
+            end
+          end
         end
-        if x > 1 and source ~= 'w'  then
-          table.insert(neighbours, 'w')
-        end
-        if x < width and source ~= 'e'  then
-          table.insert(neighbours, 'e')
-        end
-        if y < height and source ~= 's'  then
-          table.insert(neighbours, 's')
-        end
-        
-        -- Carve a passage to a random picked neighbour.
-        local direction = neighbours[love.math.random(#neighbours)]
-        local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-        table.insert(grid[y][x], direction)
-        table.insert(grid[ny][nx], OPPOSITE[direction])
       end
     end
   end
@@ -157,34 +121,61 @@ function generator.generate_rec(width, height)
     local x, y = cell.x, cell.y
 
     -- Find any unvisited neighbours of the current cell.
-    local neighbours = {}
-    if y > 1 and #grid[y - 1][x] == 0 then
-      table.insert(neighbours, 'n')
-    end
-    if x > 1 and #grid[y][x - 1] == 0 then
-      table.insert(neighbours, 'w')
-    end
-    if x < width and #grid[y][x + 1] == 0 then
-      table.insert(neighbours, 'e')
-    end
-    if y < height and #grid[y + 1][x] == 0 then
-      table.insert(neighbours, 's')
+    local moved = false
+    local directions = array.shuffle({ 'n', 's', 'e', 'w' })
+    for _, direction in ipairs(directions) do
+      local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+      if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] == 0 then
+        -- ... push it into the stack (as we might fork from it later).
+        table.insert(queue, cell)
+      -- Carve a passage to it.
+        table.insert(grid[y][x], direction)
+        table.insert(grid[ny][nx], OPPOSITE[direction])
+      -- Update the current cell, moving to the neighbour.
+        cell = { x = nx, y = ny }
+        moved = true
+        break
+      end
     end
 
-    -- If the cell has some valid neighbours...
-    if #neighbours > 0 then
-      -- ... push it into the stack (as we might fork from it later).
-      table.insert(queue, cell)
-      -- Pick a random neighbour and carve a passage to it.
-      local direction = neighbours[love.math.random(#neighbours)]
-      local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
-      table.insert(grid[y][x], direction)
-      table.insert(grid[ny][nx], OPPOSITE[direction])
-      -- Update the current cell, moving to the neighbour.
-      cell = { x = nx, y = ny }
-    else
-      -- Request a new cell from the stack.
+    -- Request a new cell from the stack.
+    if not moved then
       cell = nil
+    end
+  end
+
+  return grid
+end
+
+-- Growing-tree generator.
+function generator.generate_gt(width, height, chooser)
+  local grid = array.create(width, height, function(x, y)
+      return {}
+    end)
+
+  local queue = { { x = love.math.random(width), y = love.math.random(height) } }
+
+  while #queue > 0 do
+    local index = chooser(queue)
+    local cell = queue[index]
+    local x, y = cell.x, cell.y
+
+    local directions = array.shuffle({ 'n', 's', 'e', 'w' })
+    for _, direction in ipairs(directions) do
+      local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+      if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] == 0 then
+        --
+        table.insert(grid[y][x], direction)
+        table.insert(grid[ny][nx], OPPOSITE[direction])
+        -- ... push it into the stack (as we might fork from it later).
+        table.insert(queue, { x = nx, y = ny })
+        --
+        index = nil
+      end
+    end
+
+    if index then
+      table.remove(queue, index)
     end
   end
 
@@ -216,6 +207,18 @@ function generator.generate(mode, width, height)
     return generator.generate_hak(width, height)
   elseif mode == 'rec' then
     return generator.generate_rec(width, height)
+  elseif mode == 'gt-fifo' then -- recursive backtracker
+    return generator.generate_gt(width, height, function(queue)
+        return #queue
+      end)
+  elseif mode == 'gt-filo' then -- tree
+    return generator.generate_gt(width, height, function(queue)
+        return 1
+      end)
+  elseif mode == 'gt-rand' then -- prim's algorithm
+    return generator.generate_gt(width, height, function(queue)
+        return love.math.random(#queue)
+      end)
   else
     return generator.generate_rec(width, height)
   end
