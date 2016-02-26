@@ -82,11 +82,13 @@ end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function generator.braid(grid, width, height)
+function generator.braid(grid, width, height, amount)
   for y = 1, height do
     for x = 1, width do
       if #grid[y][x] == 1 then -- found a dead-end
         local source = grid[y][x][1] -- from whence we are coming?
+        --
+        local remaining = amount or 1
         -- Pick a valid neighbour, excluding the edge and the source cell.
         local directions = array.shuffle({ 'n', 's', 'e', 'w' })
         for _, direction in ipairs(directions) do
@@ -95,7 +97,11 @@ function generator.braid(grid, width, height)
             if nx >= 1 and ny >= 1 and ny <= height and nx <= width then
               table.insert(grid[y][x], direction)
               table.insert(grid[ny][nx], OPPOSITE[direction])
-              break -- relax this for bigger rooms!!!
+--              break -- relax this for bigger rooms!!!
+              remaining = remaining - 1
+              if remaining == 0 then
+                break
+              end
             end
           end
         end

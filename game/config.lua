@@ -1,9 +1,7 @@
 return {
   debug = {
     fps = false,
-    shadows = true
     shadows = true,
-    cheat = false
     cheat = false,
     details = false
   },
@@ -11,6 +9,6 @@ return {
     scale = 3
   },
   maze = {
-    type = 'hak'
+    type = 'gt-fifo'
   }
 }
