@@ -51,10 +51,6 @@ local _deltas = {
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
-local function to_screen(x, y)
-    return (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
-end
-
 local function sign(delta) -- TODO: move to "utils"
   if delta < 0 then
     return -1
@@ -65,7 +61,7 @@ local function sign(delta) -- TODO: move to "utils"
   end
 end
 
-local function delta(a, b, c, d)
+local function delta(a, b, c, d) -- points
   local dx, dy
   if type(a) == 'table' and type(b) == 'table' then
     dx, dy = a.x - b.x, a.y - b.y
@@ -75,7 +71,7 @@ local function delta(a, b, c, d)
   return dx, dy
 end
 
-local function distance(a, b, c, d)
+local function distance(a, b, c, d) -- points
   local dx, dy = delta(a, b, c, d)
   return math.sqrt(dx * dx + dy * dy)
 end
@@ -103,18 +99,37 @@ function Foe:initialize(world, x, y)
 end
 
 function Foe:update(dt)
-  local world = self.world
-  local avatar = world.entities['avatar']
-
   self.time = self.time + dt -- DAMPENER
   if self.time < self.dampening then
     return
   end
   self.time = 0
 
+  local world = self.world
+  local avatar = world.avatar
+
+  -- Scan the flares, checking for the nearest visible one. If found, mark the
+  -- identifier, we will use it to drive the foe toward it.
+  local bait = nil
+  local distance_so_far = math.huge
+  for k, flare in pairs(world.flares) do
+    local flare_distance = distance(self.position, flare.position)
+    if flare_distance < 7 and world:is_visible(self.position, flare.position) then
+      if distance_so_far > flare_distance then
+        distance_so_far = flare_distance
+        bait = k -- the foes is following a bait
+      end
+    end
+  end
+
   -- If the avatar is spotted, record it's view position.
-  if distance(self.position, avatar.position) < 5 and
-      world:is_visible(self.position, avatar.position) then
+  if bait then
+    local flare = world.flares[bait]
+    self.target = { x = flare.position.x, y = flare.position.y }
+    self.state = 'seeking'
+    self.memory = 10
+    self.dampening = 0.5
+  elseif distance(self.position, avatar.position) < 5 and world:is_visible(self.position, avatar.position) then
     self.target = { x = avatar.position.x, y = avatar.position.y }
     self.state = 'seeking'
     self.memory = 10
@@ -163,7 +178,7 @@ function Foe:draw()
   local x, y = self.position.x, self.position.y
   local energy = self.world.maze:energy_at(x, y)
   local alpha = config.debug.cheat and 255 or math.min(math.floor(255 * energy), 255)
-  local sx, sy = to_screen(x, y)
+  local sx, sy = self.world:to_screen(x, y)
   love.graphics.setColor(255, 127, 127, alpha)
   love.graphics.rectangle('fill', sx, sy,
     constants.CELL_WIDTH, constants.CELL_HEIGHT)

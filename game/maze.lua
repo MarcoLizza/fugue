@@ -199,12 +199,8 @@ local function colorize(colors, cells, width, height)
       local color = 'undefined'
       if cells[y][x] then -- visible cell => ground
         color = 'ground'
-      elseif not cells[y][x] then -- non-visible cell
-        if y < height and cells[y + 1][x] then -- above visible => wall
-          color = 'wall'
-        else -- last row AND above non-visible => concrete
-          color = 'concrete'
-        end
+      elseif not cells[y][x] then -- non-visible cell -> wall
+        color = 'wall'
       end
       colors[y][x] = color
     end
@@ -239,7 +235,7 @@ function Maze:generate()
   -- Generate the maze, the "braid" the dead-ends. This will be useful,
   -- later, to crate the rooms.
   local grid = generator.generate(config.maze.type, width, height)
-  generator.braid(grid, width, height)
+  generator.braid(grid, width, height, config.maze.braiding)
 
   -- Clear the current map content and expand the generated grid into it.
   clear(self.colors, self.cells, self.width, self.height)
@@ -302,7 +298,7 @@ function Maze:raycast(x0, y0, x1, y1, evaluate)
   return true
 end
 
-function Maze:update(dt)
+function Maze:update(dt, callback)
   -- Scan the emitters' list updating them and marking the "dead" ones. The
   -- latter are pulled from the list.
   local zombies = {}
@@ -315,6 +311,7 @@ function Maze:update(dt)
 
   for _, id in ipairs(zombies) do
     self.emitters[id] = nil
+    callback(id) -- notify an emitter has disappeared
   end
 
   -- Reset the energy-map. Here we should also teke into account the non-changing

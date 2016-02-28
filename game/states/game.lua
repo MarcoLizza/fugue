@@ -35,7 +35,7 @@ local game = {
 
 function game:initialize()
   self.input = Input.new()
-  self.input:initialize({ 'up', 'down', 'left', 'right' }, 0.2)
+  self.input:initialize({ 'up', 'down', 'left', 'right', 'x' }, 0.2)
   
   self.world:initialize()
 end

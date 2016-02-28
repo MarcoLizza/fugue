@@ -56,7 +56,7 @@ function Input:update(dt)
   -- clear. During input, update the dampener and process input from time to
   -- time.
   local keys, has_input = utils.grab_input(self.keys)
-    if not has_input then
+  if not has_input then
     self.dampener:reset()
     return nil, false
   end

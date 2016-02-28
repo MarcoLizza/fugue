@@ -9,6 +9,7 @@ return {
     scale = 3
   },
   maze = {
-    type = 'gt-fifo'
+    type = 'gt-rand',
+    braiding = 1
   }
 }
