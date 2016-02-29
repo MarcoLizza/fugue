@@ -266,6 +266,13 @@ function Maze:get_emitter(id)
   return self.emitters[id]
 end
 
+function Maze:move_emitter(id, x, y)
+  local emitter = self.emitters[id]
+  if emitter then
+    emitter:set_position(x, y)
+  end
+end
+
 function Maze:raycast(x0, y0, x1, y1, evaluate)
   local dx = math.abs(x1 - x0)
   local dy = math.abs(y1 - y0)

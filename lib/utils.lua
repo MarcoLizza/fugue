@@ -151,7 +151,7 @@ function utils.load_atlas(filename, frame_width, frame_height)
   local sheet = love.graphics.newImage(filename)
   local atlas = {}
 
-  -- The frames are organized in the sheet in a single row-by-colums,
+  -- The frames are organized in the sheet in row-by-colums fashion,
   -- so we can get dynamically the amount of tiles with a couple of
   -- simple division.
   local columns = sheet:getWidth() / frame_width
@@ -164,6 +164,32 @@ function utils.load_atlas(filename, frame_width, frame_height)
   end
   
   return sheet, atlas
+end
+
+-- Returns the sign of a given value.
+function utils.sign(value)
+  if value < 0 then
+    return -1
+  elseif value > 0 then
+    return 1
+  else
+    return 0
+  end
+end
+
+function utils.delta(a, b, c, d)
+  local dx, dy
+  if type(a) == 'table' and type(b) == 'table' then
+    dx, dy = a.x - b.x, a.y - b.y
+  else
+    dx, dy = a - c, b - d
+  end
+  return dx, dy
+end
+
+function utils.distance(a, b, c, d)
+  local dx, dy = utils.delta(a, b, c, d)
+  return math.sqrt(dx * dx + dy * dy)
 end
 
 -- END OF MODULE ---------------------------------------------------------------

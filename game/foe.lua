@@ -25,6 +25,8 @@ freely, subject to the following restrictions:
 local config = require('game.config')
 local constants = require('game.constants')
 local array = require('lib.array')
+local graphics = require('lib.graphics')
+local utils = require('lib.utils')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -49,33 +51,6 @@ local _deltas = {
   e = { x = 1, y = 0 },
 }
 
--- LOCAL FUNCTIONS -------------------------------------------------------------
-
-local function sign(delta) -- TODO: move to "utils"
-  if delta < 0 then
-    return -1
-  elseif delta > 0 then
-    return 1
-  else
-    return 0
-  end
-end
-
-local function delta(a, b, c, d) -- points
-  local dx, dy
-  if type(a) == 'table' and type(b) == 'table' then
-    dx, dy = a.x - b.x, a.y - b.y
-  else
-    dx, dy = a - c, b - d
-  end
-  return dx, dy
-end
-
-local function distance(a, b, c, d) -- points
-  local dx, dy = delta(a, b, c, d)
-  return math.sqrt(dx * dx + dy * dy)
-end
-
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
 
 Foe.__index = Foe
@@ -94,6 +69,7 @@ function Foe:initialize(world, x, y)
   self.dampening = 0.5
   self.state = 'roaming'
   self.memory = 0
+  self.remaining_steps = 0
   self.direction = _directions[love.math.random(4)]
   self.target = nil -- if nil the foe is roaming
 end
@@ -106,15 +82,17 @@ function Foe:update(dt)
   self.time = 0
 
   local world = self.world
-  local avatar = world.avatar
+  local maze = world.maze
+  local entities = world.entities
+  local avatar = entities.avatar
 
   -- Scan the flares, checking for the nearest visible one. If found, mark the
   -- identifier, we will use it to drive the foe toward it.
   local bait = nil
   local distance_so_far = math.huge
-  for k, flare in pairs(world.flares) do
-    local flare_distance = distance(self.position, flare.position)
-    if flare_distance < 7 and world:is_visible(self.position, flare.position) then
+  for k, flare in pairs(entities.flares) do
+    local flare_distance = utils.distance(self.position, flare.position)
+    if flare_distance < 7 and maze:is_visible(self.position, flare.position) then
       if distance_so_far > flare_distance then
         distance_so_far = flare_distance
         bait = k -- the foes is following a bait
@@ -129,7 +107,7 @@ function Foe:update(dt)
     self.state = 'seeking'
     self.memory = 10
     self.dampening = 0.5
-  elseif distance(self.position, avatar.position) < 5 and world:is_visible(self.position, avatar.position) then
+  elseif utils.distance(self.position, avatar.position) < 5 and maze:is_visible(self.position, avatar.position) then
     self.target = { x = avatar.position.x, y = avatar.position.y }
     self.state = 'seeking'
     self.memory = 10
@@ -146,8 +124,8 @@ function Foe:update(dt)
 
   -- If the avatar sightning position is reached, switch to roaming.
   if self.state == 'seeking' then
-    local dx, dy = delta(self.target, self.position) -- TODO: pathfinding
-    local _ = world:move(self.position, sign(dx), sign(dy))
+    local dx, dy = utils.delta(self.target, self.position) -- TODO: pathfinding
+    local _ = world:move(self.position, utils.sign(dx), utils.sign(dy))
     if self.position.x == self.target.x and self.position.y == self.target.y then
 --      self.target = nil
 --      self.state = 'roaming'
@@ -155,11 +133,15 @@ function Foe:update(dt)
     end
     return
   end
-  
-  -- roaming
+
+  -- The AI will keep on moving toward the current direction until a wall
+  -- is reached *or* too many steps have been done.
   local delta = _deltas[self.direction]
   local moved = world:move(self.position, delta.x, delta.y)
-  if not moved then
+  if moved then
+    self.remaining_steps = self.remaining_steps - 1
+  end
+  if not moved or self.remaining_steps <= 0 then
     local directions = array.shuffle(_directions)
     for _, direction in ipairs(directions) do
       if direction ~= _opposites[self.direction] then -- discard the coming direction
@@ -167,6 +149,7 @@ function Foe:update(dt)
         moved = world:move(self.position, delta.x, delta.y)
         if moved then
           self.direction = direction
+          self.remaining_steps = 10
           break
         end
       end
@@ -178,18 +161,12 @@ function Foe:draw()
   local x, y = self.position.x, self.position.y
   local energy = self.world.maze:energy_at(x, y)
   local alpha = config.debug.cheat and 255 or math.min(math.floor(255 * energy), 255)
-  local sx, sy = self.world:to_screen(x, y)
-  love.graphics.setColor(255, 127, 127, alpha)
-  love.graphics.rectangle('fill', sx, sy,
-    constants.CELL_WIDTH, constants.CELL_HEIGHT)
+  graphics.draw(x, y, { 255, 127, 127, alpha })
   if config.debug.details then
     love.graphics.setColor(127, 127, 255, alpha)
-    love.graphics.print(string.format("%s %.5f", self.direction, self.memory), sx, sy - 8)
+--    love.graphics.print(string.format("%s %.5f", self.direction, self.memory), sx, sy - 8)
     if self.target then
-      sx, sy = to_screen(self.target.x, self.target.y)
-      love.graphics.setColor(255, 127, 255, alpha)
-      love.graphics.rectangle('fill', sx, sy,
-        constants.CELL_WIDTH, constants.CELL_HEIGHT)
+      graphics.draw(self.target.x, self.target.y, { 255, 127, 255, alpha })
     end
   end
 end
