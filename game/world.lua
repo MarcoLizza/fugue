@@ -35,16 +35,16 @@ local world = {
   maze = nil,
   entities = nil,
   hud = nil,
-  level = 4
+  level = 12
 }
 
 -- LOCAL VARIABLES -------------------------------------------------------------
 
-local _tints = {
-  ground = { 0x99, 0x88, 0x77, 0 },
-  wall = { 0x77, 0x55, 0x22, 0 },
-  concrete = { 0x44, 0x33, 0x11, 0 },
-  undefined = { 0x3f, 0x3f, 0x3f, 0 }
+local TINTS = {
+  ground = { 0x99, 0x88, 0x77 },
+  wall = { 0x77, 0x55, 0x22 },
+  concrete = { 0x44, 0x33, 0x11 },
+  undefined = { 0x3f, 0x3f, 0x3f }
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -98,7 +98,7 @@ end
 function world:draw()
   if config.debug.shadows then
     self.maze:scan(function(x, y, color, cell, energy)
-        local r, g, b = unpack(_tints[color])
+        local r, g, b = unpack(TINTS[color])
         local alpha = math.min(math.floor(255 * energy), 255)
         graphics.draw(x, y, { r, g, b, alpha })
       end)

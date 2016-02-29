@@ -50,14 +50,6 @@ end
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
-local function overlap(a, b, c, d) -- points
-  local ax, ay, bx, by = a, b, c, d
-  if type(a) == 'table' and type(b) == 'table' then
-    ax, ay, bx, by = a.x, a.y, b.x, b.y
-  end
-  return ax == bx and ay == by
-end
-
 local function iterate(object, table, callback)
   local ax, ay = object.position.x, object.position.y
   for _, other in ipairs(table) do
@@ -105,11 +97,12 @@ function Entities:generate(level)
   end
   
   -- Pick a random position for the door. It need to be far from the player.
+  -- Initially, the door is not visible.
   while true do
     local x, y = randomize_position()
     local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
     if maze:is_walkable(x, y) and distance >= 35 then
-      local door = { position = { x = x, y = y }, visible = true }
+      local door = { position = { x = x, y = y }, visible = false }
       self.door = door
       break
     end
@@ -200,7 +193,7 @@ function Entities:update(dt)
 
   if avatar.keys < #self.keys then
     for _, key in ipairs(self.keys) do
-      if key.visible and overlap(avatar.position, key.position) then
+      if key.visible and utils.overlap(avatar.position, key.position) then
         avatar.keys = avatar.keys + 1
         key.visible = false
       end
@@ -208,7 +201,7 @@ function Entities:update(dt)
   else
     local door = self.door
     door.visible = true
-    if overlap(avatar.position, door.position) then
+    if utils.overlap(avatar.position, door.position) then
       door.visible = false
     end
   end
@@ -273,7 +266,7 @@ function Entities:is_avatar_hit()
   
   local occurred = false
   iterate(avatar, self.foes, function(ax, ay, bx, by)
-      if overlap(ax, ay, bx, by) then
+      if utils.overlap(ax, ay, bx, by) then
         occurred = true
         return false
       else

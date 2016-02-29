@@ -102,7 +102,7 @@ function Foe:update(dt)
 
   -- If the avatar is spotted, record it's view position.
   if bait then
-    local flare = world.flares[bait]
+    local flare = entities.flares[bait]
     self.target = { x = flare.position.x, y = flare.position.y }
     self.state = 'seeking'
     self.memory = 10

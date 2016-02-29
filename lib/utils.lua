@@ -192,6 +192,14 @@ function utils.distance(a, b, c, d)
   return math.sqrt(dx * dx + dy * dy)
 end
 
+function utils.overlap(a, b, c, d)
+  local ax, ay, bx, by = a, b, c, d
+  if type(a) == 'table' and type(b) == 'table' then
+    ax, ay, bx, by = a.x, a.y, b.x, b.y
+  end
+  return ax == bx and ay == by
+end
+
 -- END OF MODULE ---------------------------------------------------------------
 
 return utils

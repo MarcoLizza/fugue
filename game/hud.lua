@@ -23,13 +23,14 @@ freely, subject to the following restrictions:
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
 local constants = require('game.constants')
+local collections = require('lib.collections')
+local utils = require('lib.utils')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Hud = {
   world = nil
 }
-
 
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
 
@@ -73,18 +74,22 @@ function Hud:draw()
   local entities = world.entities
   local avatar = entities.avatar
 
-  -- HUD
+  -- The target is the first visible key (the player could have collected them
+  -- in any order), or the door.
+  local key = collections.select(entities.keys, function(_, value)
+        return value.visible
+      end)
+  local target = key or entities.door
+  
   -- Compute the angle/distance from the current target (key, door, etc)
   -- and display a compass.
-  local target = avatar.keys < #entities.keys and entities.keys[avatar.keys + 1] or self.door
-  local dx, dy = target.position.x - avatar.position.x, target.position.y - avatar.position.y -- FIXME: delta?
+  local dx, dy = utils.delta(target.position, avatar.position)
   local compass = compass(dx, dy)
 
   love.graphics.setColor(255, 255, 255)
   love.graphics.print(string.format('L: %d | D: %d | H: %d | F: %d | A: %s',
       world.level, avatar.duration, avatar.health, avatar.flares, compass),
       0, constants.SCREEN_HEIGHT - 14)
-
 end
 
 -- END OF MODULE ---------------------------------------------------------------
