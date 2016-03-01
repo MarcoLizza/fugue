@@ -59,6 +59,8 @@ function Input:update(dt)
     if pressed then
       local accumulator = self.accumulators[key.group]
 
+      -- Keep a group-based input counter, and increment the time
+      -- accumulator if needed (i.e only on the first input)
       counters[key.group] = counters[key.group] and counters[key.group] + 1 or 1
       if counters[key.group] == 1 then
         accumulator.time = accumulator.time + dt
@@ -78,9 +80,10 @@ function Input:update(dt)
     key.pressed = pressed
   end
 
-  -- Reset the accumulators whose total time has passed the delay amount.
-  for _, accumulator in pairs(self.accumulators) do
-    if accumulator.time > accumulator.delay then
+  -- Reset the accumulators whose total time has passed the delay amount
+  -- or has not been interacted with in the last iteration.
+  for group, accumulator in pairs(self.accumulators) do
+    if accumulator.time > accumulator.delay or not counters[group] then
       accumulator.time = 0
     end
   end
