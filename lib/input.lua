@@ -20,17 +20,12 @@ freely, subject to the following restrictions:
 
 ]]--
 
--- MODULE INCLUSIONS -----------------------------------------------------------
-
-local Dampener = require('lib.dampener')
-local utils = require('lib.utils')
-
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Input = {
   _VERSION = '0.1.0',
   keys = nil,
-  dampener = nil
+  accumulators = nil
 }
 
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
@@ -44,28 +39,53 @@ end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function Input:initialize(keys, delay)
-  self.keys = keys
-
-  self.dampener = Dampener.new()
-  self.dampener:initialize(delay)
+function Input:initialize(keys, groups)
+  self.keys = {}
+  self.accumulators = {}
+  for id, group in pairs(keys) do
+    self.keys[id] = { group = group, pressed = false }
+    self.accumulators[group] = { delay = groups[group], time = 0 }
+  end
 end
 
 function Input:update(dt)
-  -- Grab the current input state. While no input is provided, keep the dampener
-  -- clear. During input, update the dampener and process input from time to
-  -- time.
-  local keys, has_input = utils.grab_input(self.keys)
-  if not has_input then
-    self.dampener:reset()
-    return nil, false
+  local keys = { amount = 0, pressed = {} }
+
+  local counters = {}
+
+  for id, key in pairs(self.keys) do
+    local pressed = love.keyboard.isDown(id)
+
+    if pressed then
+      local accumulator = self.accumulators[key.group]
+
+      counters[key.group] = counters[key.group] and counters[key.group] + 1 or 1
+      if counters[key.group] == 1 then
+        accumulator.time = accumulator.time + dt
+      end
+
+      if not key.pressed then -- first key press
+        keys.amount = keys.amount + 1
+        keys.pressed[id] = true
+      else -- repeating key press
+        if accumulator.time > accumulator.delay then
+          keys.amount = keys.amount + 1
+          keys.pressed[id] = true
+        end
+      end
+    end
+
+    key.pressed = pressed
   end
-  self.dampener:update(dt)
-  if not self.dampener:passed() then
-    return nil, false
+
+  -- Reset the accumulators whose total time has passed the delay amount.
+  for _, accumulator in pairs(self.accumulators) do
+    if accumulator.time > accumulator.delay then
+      accumulator.time = 0
+    end
   end
-  self.dampener:reset()
-  return keys, true
+
+  return keys
 end
 
 -- END OF MODULE ---------------------------------------------------------------

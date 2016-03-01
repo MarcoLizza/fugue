@@ -35,8 +35,9 @@ local game = {
 
 function game:initialize()
   self.input = Input.new()
-  self.input:initialize({ 'up', 'down', 'left', 'right', 'x' }, 0.2)
-  
+  self.input:initialize({ up = 'move', down = 'move', left = 'move', right = 'move', x = 'action' },
+    { move = 0.2, action = math.huge })
+
   self.world:initialize()
 end
 
@@ -48,8 +49,8 @@ function game:leave()
 end
 
 function game:events(dt)
-  local keys, has_input = self.input:update(dt)
-  if not has_input then
+  local keys = self.input:update(dt)
+  if keys.amount == 0 then
     return
   end
 
