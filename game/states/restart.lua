@@ -22,8 +22,8 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
-utils = require('lib.utils')
-Dampener = require('lib.dampener')
+local utils = require('lib.utils')
+local Dampener = require('lib.dampener')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -84,7 +84,7 @@ function gameover:update(dt)
 
   local keys, has_input = utils.grab_input(KEYS)
 
-  return keys['x'] and 'splash' or nil
+  return keys['x'] and 'menu' or nil
 end
 
 function gameover:draw()

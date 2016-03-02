@@ -6,7 +6,7 @@ return {
     details = false
   },
   display = {
-    scale = 3
+    scale = 2
   },
   maze = {
     type = 'gt-rand',

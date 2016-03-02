@@ -22,6 +22,8 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
+local constants = require('game.constants')
+local graphics = require('lib.graphics')
 local Input = require('lib.input')
 
 -- MODULE DECLARATION ----------------------------------------------------------
@@ -29,7 +31,11 @@ local Input = require('lib.input')
 local game = {
   environment = nil,
   input = nil,
-  world = require('game.world')
+  world = require('game.world'),
+  font = nil,
+  --
+  progress = nil,
+  running = nil
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -42,9 +48,14 @@ function game:initialize(environment)
     { move_up = 0.2, move_down = 0.2, move_left = 0.2, move_right = 0.2, action = math.huge })
 
   self.world:initialize()
+  
+  local charset = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+  self.font = love.graphics.newImageFont('assets/fonts/retro_computer_regular_14.png', charset)
 end
 
 function game:enter()
+  self.progress = 0
+  self.running = false
   self.environment.level = 0
   self.world:generate(self.environment.level)
 end
@@ -62,6 +73,12 @@ function game:events(dt)
 end
 
 function game:update(dt)
+  if not self.running then
+    self.progress = self.progress + dt
+    self.running = self.progress >= 3
+    return
+  end
+  
   -- Handle the events, that is mostly the inputs.
   self:events(dt)
 
@@ -74,8 +91,10 @@ function game:update(dt)
     if state == 'goal' then
       self.environment.level = self.environment.level + 1
     elseif state == 'game-over' then
-      self.environment.level = 0 -- TODO: the level reset will be performed in the game "enter" only
+      return 'restart'
     end
+    self.progress = 0
+    self.running = false
     self.world:generate(self.environment.level)
   end
 
@@ -83,7 +102,17 @@ function game:update(dt)
 end
 
 function game:draw()
-  self.world:draw()
+  if self.running then
+    self.world:draw()
+  else
+    graphics.cover({ 0, 0, 0 })
+    local text = string.format('DAY #%d', self.environment.level)
+    local text_width = self.font:getWidth(text)
+    love.graphics.setFont(self.font)
+    love.graphics.setColor({255, 255, 255})
+    love.graphics.print(text, (constants.SCREEN_WIDTH - text_width) / 2,
+      (constants.SCREEN_HEIGHT - 14) / 2)
+  end
 end
 
 -- END OF MODULE ---------------------------------------------------------------

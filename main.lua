@@ -27,7 +27,8 @@ local Stateful = require('lib.stateful')
 
 -- LOCAL VARIABLES -------------------------------------------------------------
 
-local stateful = nil
+local _stateful = nil
+local _time = 0
 
 -- ENGINE CALLBACKS ------------------------------------------------------------
 
@@ -38,13 +39,14 @@ function love.load(args)
   love.graphics.setDefaultFilter('nearest', 'nearest', 1)
 
   -- Initializes the state-engine.
-  stateful = Stateful.new()
-  stateful:initialize({
---    splash = require('game.states.splash'),
+  _stateful = Stateful.new()
+  _stateful:initialize({
+    splash = require('game.states.splash'),
+    menu = require('game.states.menu'),
     game = require('game.states.game'),
---    restart = require('game.states.restart')
+    restart = require('game.states.restart')
   }, { level = 0 })
-  stateful:switch_to('game')
+  _stateful:switch_to('game')
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -63,7 +65,7 @@ end
 
 function love.update(dt)
   local start = love.timer.getTime()
-  stateful:update(dt)
+  _stateful:update(dt)
   _time = love.timer.getTime() - start
 end
 
@@ -71,7 +73,7 @@ function love.draw()
   love.graphics.push()
   love.graphics.scale(config.display.scale)
 
-  stateful:draw()
+  _stateful:draw()
 
   love.graphics.pop()
 

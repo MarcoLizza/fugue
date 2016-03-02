@@ -22,22 +22,18 @@ freely, subject to the following restrictions:
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
-local splash = {
+local menu = {
   states = {
-    { mode = 'fade-in', delay = 1, file = 'assets/splash-0.png' },
-    { mode = 'display', delay = 5, file = 'assets/splash-0.png' },
-    { mode = 'cross-out', delay = 0.25, file = 'assets/splash-0.png' },
-    { mode = 'cross-in', delay = 0.25, file = 'assets/splash-1.png' },
-    { mode = 'display', delay = 5, file = 'assets/splash-1.png' },
-    { mode = 'cross-out', delay = 0.25, file = 'assets/splash-1.png' },
-    { mode = 'cross-in', delay = 0.25, file = 'assets/splash-2.png' },
-    { mode = 'display', delay = 5, file = 'assets/splash-2.png' },
-    { mode = 'fade-out', delay = 2, file = 'assets/splash-2.png' },
+    { mode = 'fade-in', delay = 3, file = 'assets/menu.png' },
+    { mode = 'display', condition = function(self) return self.begin end, file = 'assets/menu.png' },
+    { mode = 'fade-out', delay = 5, file = 'assets/menu.png' },
   },
   index = nil,
   image = nil,
   delay = 0,
-  progress = 0
+  progress = 0,
+  --
+  begin = nil
 }
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
@@ -49,28 +45,38 @@ end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function splash:initialize()
+function menu:initialize()
 end
 
-function splash:enter()
+function menu:enter()
   self.index = nil
+  
+  self.begin = false
 end
 
-function splash:leave()
+function menu:leave()
   -- Release the image resource upon state leaving.
   self.image = nil
 end
 
-function splash:update(dt)
+function menu:update(dt)
+  if not self.begin then
+    if love.keyboard.isDown('x') then
+      self.begin = true
+    end
+  end
+  
   -- Determine if we should move to the next state. This happens if the index is
-  -- not defined or if (after advancing the progress counter) the timeout has
-  -- elapsed.
+  -- not defined, or a programmable condition has triggere, or if (after advancing
+  -- the progress counter) the timeout has elapsed.
   local change = false
   
   if not self.index then
     self.index = 0
     change = true
-  elseif self.progress < self.delay then
+  elseif self.condition and self.condition(self) then -- TODO: type(self.trigger) == 'function'?
+    change = true
+  elseif self.delay and self.progress < self.delay then
     self.progress = self.progress + dt
     if self.progress >= self.delay then
       change = true
@@ -82,7 +88,7 @@ function splash:update(dt)
     -- need to switch to the game state.
     self.index = self.index + 1
     if self.index > #self.states then
-      return 'menu'
+      return 'game'
     end
 
     -- Get the next state. If an image is defined, pre-load it. Then, we
@@ -93,6 +99,7 @@ function splash:update(dt)
     else
       self.image = nil
     end
+    self.condition = state.condition
     self.delay = state.delay
     self.progress = 0
   end
@@ -100,7 +107,7 @@ function splash:update(dt)
   return nil
 end
 
-function splash:draw()
+function menu:draw()
   -- If the state index has not been updated yet, skip and wait next
   -- iteration.
   if not self.index then
@@ -113,7 +120,7 @@ function splash:draw()
   end
 
   -- Calculate the current fading progress ratio.
-  local alpha = self.progress / self.delay
+  local alpha = self.delay and self.progress / self.delay
 
   -- According to the current mode, compute the fading color.
   local color = nil
@@ -143,6 +150,6 @@ end
 
 -- END OF MODULE ---------------------------------------------------------------
 
-return splash
+return menu
 
 -- END OF FILE -----------------------------------------------------------------
