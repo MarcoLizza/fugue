@@ -226,7 +226,24 @@ function Maze:initialize(width, height)
   self.height = height
 end
 
+function Maze:reset()
+  -- Rewrite the maze tables to neutral values.
+  for y = 1, self.height do
+    for x = 1, self.width do
+      self.colors[y][x] = 'undefined'
+      self.cells[y][x] = false
+      self.energy[y][x] = 0
+    end
+  end
+  
+  -- We empty the emitters table.
+  self.emitters = {}
+end
+
 function Maze:generate()
+  -- We reset he maze, to be safe.
+  self:reset()
+  
   -- The generator will work on a "half-size" version of the maze, since
   -- we will expand and insert the walls later. Please note that we need
   -- to ensure the the size not the have a decimal part.
