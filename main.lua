@@ -43,7 +43,7 @@ function love.load(args)
 --    splash = require('game.states.splash'),
     game = require('game.states.game'),
 --    restart = require('game.states.restart')
-  })
+  }, { level = 0 })
   stateful:switch_to('game')
 end
 

@@ -23,7 +23,7 @@ freely, subject to the following restrictions:
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Stateful = {
-  _VERSION = '0.1.0',
+  _VERSION = '0.2.0',
   states = {},
   current = nil
 }
@@ -42,10 +42,14 @@ end
 
 -- Initialized the instance, binding the passed states table and initializing
 -- each state in sequence. The states can be indexed both by a numeric index
--- or table key.
-function Stateful:initialize(states)
+-- or table key. Along with the states list, we are passing also a table to
+-- be used as a shared environment" (it will be propagated to the states, as
+-- well).
+function Stateful:initialize(states, environment)
+  self.environment = environment
+  
   for key, state in pairs(states) do
-    state:initialize()
+    state:initialize(self.environment)
     self.states[key] = state
   end
 end

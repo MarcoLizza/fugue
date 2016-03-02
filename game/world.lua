@@ -34,8 +34,7 @@ local graphics = require('lib.graphics')
 local world = {
   maze = nil,
   entities = nil,
-  hud = nil,
-  level = 12
+  hud = nil
 }
 
 -- LOCAL VARIABLES -------------------------------------------------------------
@@ -60,9 +59,11 @@ function world:initialize()
   self.hud:initialize(self)
 end
 
-function world:generate()
+function world:generate(level)
+  self.level = level -- FIXME: should use global environment
+  
   self.maze:generate()
-  self.entities:generate(self.level)
+  self.entities:generate(level)
 
   local position = self.entities.avatar.position
   self.maze:spawn_emitter('avatar', position.x, position.y, 5, 3)
@@ -85,14 +86,21 @@ function world:update(dt)
   self.entities:update(dt)
 
   self.hud:update(dt)
+end
 
---  if avatar.duration == 0 or avatar.health == 0 then
---    return 'game-over'
---  elseif avatar.goal then
---    return 'game-win'
---  else
---    return nil
---  end
+function world:get_state()
+  local entities = self.entities
+  local avatar = entities.avatar
+  local door = entities.door
+  local keys = entities.keys
+
+  if door.unlocked then
+    return 'goal'
+  elseif avatar.duration <= 0 or avatar.health <= 0 then
+    return 'game-over'
+  else
+    return nil
+  end
 end
 
 function world:draw()

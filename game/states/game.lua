@@ -27,22 +27,26 @@ local Input = require('lib.input')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local game = {
+  environment = nil,
   input = nil,
   world = require('game.world')
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function game:initialize()
+function game:initialize(environment)
+  self.environment = environment
+
   self.input = Input.new()
-  self.input:initialize({ up = 'move', down = 'move', left = 'move', right = 'move', x = 'action' },
-    { move = 0.2, action = math.huge })
+  self.input:initialize({ up = 'move_up', down = 'move_down', left = 'move_left', right = 'move_right', x = 'action' },
+    { move_up = 0.2, move_down = 0.2, move_left = 0.2, move_right = 0.2, action = math.huge })
 
   self.world:initialize()
 end
 
 function game:enter()
-  self.world:generate()
+  self.environment.level = 0
+  self.world:generate(self.environment.level)
 end
 
 function game:leave()
@@ -61,8 +65,19 @@ function game:update(dt)
   -- Handle the events, that is mostly the inputs.
   self:events(dt)
 
-  --
+  -- Update the world, then get the current world state used to drive the
+  -- engine state-machine.
   self.world:update(dt)
+  local state = self.world:get_state()
+  
+  if state then
+    if state == 'goal' then
+      self.environment.level = self.environment.level + 1
+    elseif state == 'game-over' then
+      self.environment.level = 0 -- TODO: the level reset will be performed in the game "enter" only
+    end
+    self.world:generate(self.environment.level)
+  end
 
   return nil
 end

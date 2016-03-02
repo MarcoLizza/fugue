@@ -76,8 +76,8 @@ function Entities:generate(level)
 
   -- We are cyclically incrementing the foes count, the restart and increase the
   -- number of keys to be found.
-  local keys = level / 5
-  local foes = level % 5
+  local keys = level % 5
+  local foes = level / 3
 
   -- The avatar is placed on a fixed position at a different corner each level.
   -- Please note that we are safe in assuming that the corner position is always
@@ -102,7 +102,7 @@ function Entities:generate(level)
     local x, y = randomize_position()
     local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
     if maze:is_walkable(x, y) and distance >= 35 then
-      local door = { position = { x = x, y = y }, visible = false }
+      local door = { position = { x = x, y = y }, visible = false, unlocked = false }
       self.door = door
       break
     end
@@ -203,6 +203,7 @@ function Entities:update(dt)
     door.visible = true
     if utils.overlap(avatar.position, door.position) then
       door.visible = false
+      door.unlocked = true
     end
   end
   
