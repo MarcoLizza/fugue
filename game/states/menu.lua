@@ -20,20 +20,81 @@ freely, subject to the following restrictions:
 
 ]]--
 
+-- MODULE INCLUSIONS -----------------------------------------------------------
+
+local graphics = require('lib.graphics')
+local constants = require('game.constants')
+
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local menu = {
   states = {
-    { mode = 'fade-in', delay = 3, file = 'assets/menu.png' },
-    { mode = 'display', condition = function(self) return self.begin end, file = 'assets/menu.png' },
-    { mode = 'fade-out', delay = 5, file = 'assets/menu.png' },
-  },
-  index = nil,
-  image = nil,
-  delay = 0,
-  progress = 0,
-  --
-  begin = nil
+    {
+      mode = 'fade-in',
+      delay = 3,
+      init = function(self, context)
+          self.image = love.graphics.newImage('assets/menu.png')
+          self.progress = 0
+        end,
+      update = function(self, context, dt)
+          self.progress = self.progress + dt
+        end,
+      condition = function(self, context)
+          return self.progress >= self.delay
+        end,
+      alpha = function(self)
+          return math.min(self.progress / self.delay, 1.0)
+        end,
+      draw = function(self, context) 
+          love.graphics.draw(self.image, 0, 0)
+        end,
+      deinit = function(self, context)
+          self.image = nil
+        end
+    },
+    {
+      init = function(self, context)
+          self.image = love.graphics.newImage('assets/menu.png')
+        end,
+      update = function(self, context, dt)
+        end,
+      condition = function(self, context)
+          return context.begin
+        end,
+      alpha = nil,
+      draw = function(self, context) 
+          love.graphics.draw(self.image, 0, 0)
+        graphics.text('PRESS X TO START',
+          constants.SCREEN_RECT, 'retro-computer', { 255, 255, 255 })
+        end,
+      deinit = function(self, context)
+          self.image = nil
+        end
+    },
+    {
+      mode = 'fade-out',
+      delay = 5,
+      init = function(self, context)
+          self.image = love.graphics.newImage('assets/menu.png')
+          self.progress = 0
+        end,
+      update = function(self, context, dt)
+          self.progress = self.progress + dt
+        end,
+      condition = function(self, context)
+          return self.progress >= self.delay
+        end,
+      alpha = function(self)
+          return math.min(self.progress / self.delay, 1.0)
+        end,
+      draw = function(self, context) 
+          love.graphics.draw(self.image, 0, 0)
+        end,
+      deinit = function(self, context)
+          self.image = nil
+        end
+    },
+  }
 }
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
@@ -50,13 +111,14 @@ end
 
 function menu:enter()
   self.index = nil
+  self.state = nil
   
   self.begin = false
 end
 
 function menu:leave()
-  -- Release the image resource upon state leaving.
-  self.image = nil
+  -- Release the state resource upon state leaving.
+  self.state = nil
 end
 
 function menu:update(dt)
@@ -74,13 +136,9 @@ function menu:update(dt)
   if not self.index then
     self.index = 0
     change = true
-  elseif self.condition and self.condition(self) then -- TODO: type(self.trigger) == 'function'?
-    change = true
-  elseif self.delay and self.progress < self.delay then
-    self.progress = self.progress + dt
-    if self.progress >= self.delay then
-      change = true
-    end
+  else
+    self.state:update(self, dt)
+    change = self.state:condition(self)
   end
 
   if change then
@@ -93,15 +151,11 @@ function menu:update(dt)
 
     -- Get the next state. If an image is defined, pre-load it. Then, we
     -- store the new state delay and reset the progress variable.
-    local state = self.states[self.index]
-    if state.file then
-      self.image = love.graphics.newImage(state.file)
-    else
-      self.image = nil
+    if self.state then
+      self.state:deinit(self)
     end
-    self.condition = state.condition
-    self.delay = state.delay
-    self.progress = 0
+    self.state = self.states[self.index]
+    self.state:init(self)
   end
 
   return nil
@@ -114,17 +168,20 @@ function menu:draw()
     return
   end
   
-  -- If defined, draw the background image.
-  if self.image then
-    love.graphics.draw(self.image, 0, 0)
+  local state = self.state
+  
+  -- Draw the state.
+  state:draw()
+
+  if not state.alpha or not state.mode then
+    return
   end
 
   -- Calculate the current fading progress ratio.
-  local alpha = self.delay and self.progress / self.delay
+  local alpha = state:alpha()
 
   -- According to the current mode, compute the fading color.
   local color = nil
-  local state = self.states[self.index]
   if state.mode == 'fade-in' then -- from black
     local factor = ease(1.0 - alpha)
     color = { 0, 0, 0, factor * 255 }
@@ -142,10 +199,10 @@ function menu:draw()
   -- If the overlay "fading" color is defined, draw a full size filled
   -- rectangle over the current display.
   if color then
-    love.graphics.setColor(color)
-    love.graphics.rectangle('fill', 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-    love.graphics.setColor(255, 255, 255)
+    graphics.cover(color)
   end
+  
+  love.graphics.setColor(255, 255, 255)
 end
 
 -- END OF MODULE ---------------------------------------------------------------

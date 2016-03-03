@@ -42,6 +42,7 @@ constants.CELL_HEIGHT = 8
 
 constants.SCREEN_WIDTH = constants.MAZE_WIDTH * constants.CELL_WIDTH
 constants.SCREEN_HEIGHT = constants.MAZE_HEIGHT * constants.CELL_HEIGHT
+constants.SCREEN_RECT = { 0, 0, constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT }
 
 constants.WINDOW_WIDTH = constants.SCREEN_WIDTH * config.display.scale
 constants.WINDOW_HEIGHT = constants.SCREEN_HEIGHT * config.display.scale

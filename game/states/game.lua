@@ -32,7 +32,6 @@ local game = {
   environment = nil,
   input = nil,
   world = require('game.world'),
-  font = nil,
   --
   progress = nil,
   running = nil
@@ -48,9 +47,6 @@ function game:initialize(environment)
     { move_up = 0.2, move_down = 0.2, move_left = 0.2, move_right = 0.2, action = math.huge })
 
   self.world:initialize()
-  
-  local charset = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
-  self.font = love.graphics.newImageFont('assets/fonts/retro_computer_regular_14.png', charset)
 end
 
 function game:enter()
@@ -106,12 +102,8 @@ function game:draw()
     self.world:draw()
   else
     graphics.cover({ 0, 0, 0 })
-    local text = string.format('DAY #%d', self.environment.level)
-    local text_width = self.font:getWidth(text)
-    love.graphics.setFont(self.font)
-    love.graphics.setColor({255, 255, 255})
-    love.graphics.print(text, (constants.SCREEN_WIDTH - text_width) / 2,
-      (constants.SCREEN_HEIGHT - 14) / 2)
+    graphics.text(string.format('DAY #%d', self.environment.level),
+      constants.SCREEN_RECT, 'retro_computer', { 255, 255, 255 })
   end
 end
 

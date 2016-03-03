@@ -22,15 +22,19 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
-local utils = require('lib.utils')
+local constants = require('game.constants')
+
 local Dampener = require('lib.dampener')
+local graphics = require('lib.graphics')
+local utils = require('lib.utils')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local gameover = {
   dampener = Dampener.new(),
   image = nil,
-  current = nil,
+  image_index = nil,
+  text_index = nil,
   delay = 3,
   progress = nil
 }
@@ -52,7 +56,7 @@ local KEYS = {
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function gameover:initialize()
+function gameover:initialize(environment)
   self.dampener:initialize(0.5)
   
   self.image = love.graphics.newImage('assets/gameover.png')
@@ -61,7 +65,8 @@ end
 function gameover:enter()
   self.dampener:reset()
 
-  self.current = 1
+  self.image_index = 1
+  self.text_index = #COLORS
   self.progress = 0
 end
 
@@ -78,7 +83,8 @@ function gameover:update(dt)
   self.progress = self.progress + dt
   
   if self.progress >= self.delay then
-    self.current = (self.current % #COLORS) + 1
+    self.image_index = utils.forward(self.image_index, COLORS)
+    self.text_index = utils.backward(self.text_index, COLORS)
     self.progress = 0
   end
 
@@ -90,14 +96,16 @@ end
 function gameover:draw()
   local alpha = self.progress / self.delay
 
-  local next = (self.current % #COLORS) + 1
-
-  local color = utils.lerp(COLORS[self.current], COLORS[next], alpha)
-
-  love.graphics.setColor(color) -- colorize the image
+  local image_next = utils.forward(self.image_index, COLORS)
+  local text_next = utils.backward(self.text_index, COLORS)
+  
+  local image_color = utils.lerp(COLORS[self.image_index], COLORS[image_next], alpha)
+  love.graphics.setColor(image_color) -- colorize the image
   love.graphics.draw(self.image, 0, 0)
 
-  love.graphics.setColor(255, 255, 255)
+  local text_color = utils.lerp(COLORS[self.text_index], COLORS[text_next], alpha)
+  graphics.text('PRESS X TO RESTART',
+    constants.SCREEN_RECT, 'retro-computer', text_color) -- colorize the text
 end
 
 -- END OF MODULE ---------------------------------------------------------------

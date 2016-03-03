@@ -200,6 +200,14 @@ function utils.overlap(a, b, c, d)
   return ax == bx and ay == by
 end
 
+function utils.forward(index, table)
+  return (index % #table) + 1
+end
+
+function utils.backward(index, table)
+  return utils.forward(index + (#table - 2), table)
+end
+
 -- END OF MODULE ---------------------------------------------------------------
 
 return utils

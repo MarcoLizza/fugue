@@ -24,13 +24,13 @@ freely, subject to the following restrictions:
 
 local constants = require('game.constants')
 local collections = require('lib.collections')
+local graphics = require('lib.graphics')
 local utils = require('lib.utils')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Hud = {
-  world = nil,
-  font = nil
+  world = nil
 }
 
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
@@ -65,9 +65,6 @@ end
 
 function Hud:initialize(world)
   self.world = world
-  
-  local charset = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
-  self.font = love.graphics.newImageFont('assets/fonts/silkscreen_normal_8.png', charset)
 end
 
 function Hud:update(dt)
@@ -90,11 +87,9 @@ function Hud:draw()
   local dx, dy = utils.delta(target.position, avatar.position)
   local compass = compass(dx, dy)
 
-  love.graphics.setFont(self.font)
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.print(string.format('L: %d | D: %d | H: %d | F: %d | A: %s',
-      world.level, avatar.duration, avatar.health, avatar.flares, compass),
-      0, constants.SCREEN_HEIGHT - 8)
+  local text = string.format('L: %d | D: %d | H: %d | F: %d | A: %s',
+      world.level, avatar.duration, avatar.health, avatar.flares, compass)
+  graphics.text(text, { 0, constants.SCREEN_HEIGHT - 8 }, 'silkscreen', { 255, 255, 255 })
 end
 
 -- END OF MODULE ---------------------------------------------------------------
