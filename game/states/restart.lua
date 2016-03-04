@@ -101,6 +101,8 @@ function gameover:draw()
     'silkscreen', { 255, 255, 255, 127 }, 'center', 'top', 2)
   graphics.text('PRESS X TO RESTART',
     constants.SCREEN_RECT, 'silkscreen', { 255, 255, 255, 191 }, 'center', 'bottom')
+
+  love.graphics.setColor(255, 255, 255)
 end
 
 -- END OF MODULE ---------------------------------------------------------------

@@ -20,6 +20,10 @@ freely, subject to the following restrictions:
 
 ]]--
 
+-- MODULE INCLUSIONS -----------------------------------------------------------
+
+local graphics = require('lib.graphics')
+
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local splash = {
@@ -112,26 +116,26 @@ function splash:draw()
   local color = nil
   local state = self.states[self.index]
   if state.mode == 'fade-in' then -- from black
-    local factor = ease(1.0 - alpha)
-    color = { 0, 0, 0, factor * 255 }
+    alpha = ease(1.0 - alpha) * 255
+    color ='black'
   elseif state.mode == 'fade-out' then -- to black
-    local factor = ease(alpha)
-    color = { 0, 0, 0, factor * 255 }
+    alpha = ease(alpha) * 255
+    color ='black'
   elseif state.mode == 'cross-in' then -- from white
-    local factor = ease(1.0 - alpha)
-    color = { 255, 255, 255, factor * 255 }
+    alpha = ease(1.0 - alpha) * 255
+    color ='white'
   elseif state.mode == 'cross-out' then -- to white
-    local factor = ease(alpha)
-    color = { 255, 255, 255, factor * 255 }
+    alpha = ease(alpha) * 255
+    color ='white'
   end
 
   -- If the overlay "fading" color is defined, draw a full size filled
   -- rectangle over the current display.
   if color then
-    love.graphics.setColor(color)
-    love.graphics.rectangle('fill', 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-    love.graphics.setColor(255, 255, 255)
+    graphics.cover(color, alpha)
   end
+  
+  love.graphics.setColor(255, 255, 255)
 end
 
 -- END OF MODULE ---------------------------------------------------------------

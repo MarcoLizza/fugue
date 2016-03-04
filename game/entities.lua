@@ -172,6 +172,9 @@ function Entities:events(keys)
 
   -- If the player requested a flare drop, leave it at the current player
   -- position
+  --
+  -- TODO: we should synch flares and emitters outside this module. Note
+  --       that flare entities are note removed when the emitter is finished.
   if drop_flare and avatar.flares > 0 then
     local flare_id = string.format('flare-%d', avatar.flares)
     local flare = { position = { x = position.x, y = position.y } }

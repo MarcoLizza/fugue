@@ -26,6 +26,7 @@ local constants = require('game.constants')
 
 local Dampener = require('lib.dampener')
 local graphics = require('lib.graphics')
+local utils = require('lib.utils')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -44,7 +45,7 @@ local menu = {
           return self.progress >= self.delay
         end,
       alpha = function(self)
-          return math.min(self.progress / self.delay, 1.0)
+          return self.progress / self.delay
         end,
       draw = function(self, context) 
           graphics.cover('dimgray')
@@ -88,7 +89,7 @@ local menu = {
           return self.progress >= self.delay
         end,
       alpha = function(self)
-          return math.min(self.progress / self.delay, 1.0)
+          return self.progress / self.delay
         end,
       draw = function(self, context) 
           graphics.cover('dimgray')
@@ -137,7 +138,7 @@ function menu:update(dt)
   local passed = self.dampener:passed()
   if passed then
     local keys, has_input = utils.grab_input(KEYS)
-    if keys('x') then
+    if keys['x'] then
       self.begin = true
     end
   end
@@ -197,23 +198,23 @@ function menu:draw()
   -- According to the current mode, compute the fading color.
   local color = nil
   if state.mode == 'fade-in' then -- from black
-    local factor = ease(1.0 - alpha)
-    color = { 0, 0, 0, factor * 255 }
+    alpha = ease(1.0 - alpha) * 255
+    color ='black'
   elseif state.mode == 'fade-out' then -- to black
-    local factor = ease(alpha)
-    color = { 0, 0, 0, factor * 255 }
+    alpha = ease(alpha) * 255
+    color ='black'
   elseif state.mode == 'cross-in' then -- from white
-    local factor = ease(1.0 - alpha)
-    color = { 255, 255, 255, factor * 255 }
+    alpha = ease(1.0 - alpha) * 255
+    color ='white'
   elseif state.mode == 'cross-out' then -- to white
-    local factor = ease(alpha)
-    color = { 255, 255, 255, factor * 255 }
+    alpha = ease(alpha) * 255
+    color ='white'
   end
 
   -- If the overlay "fading" color is defined, draw a full size filled
   -- rectangle over the current display.
   if color then
-    graphics.cover(color)
+    graphics.cover(color, alpha)
   end
   
   love.graphics.setColor(255, 255, 255)

@@ -107,6 +107,8 @@ function game:draw()
     graphics.text(string.format('DAY #%d', self.environment.level),
       constants.SCREEN_RECT, 'retro-computer', 'white', 'center', 'middle', 2)
   end
+
+  love.graphics.setColor(255, 255, 255)
 end
 
 -- END OF MODULE ---------------------------------------------------------------
