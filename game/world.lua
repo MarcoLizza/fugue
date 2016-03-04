@@ -57,7 +57,7 @@ function world:initialize()
 end
 
 function world:generate(level)
-  self.level = level -- FIXME: should use global environment
+  self.level = level -- FIXME: should use global environment or move HUD to the game instance.
   
   self.maze:generate()
   self.entities:generate(level)
@@ -69,7 +69,10 @@ end
 function world:events(keys)
   self.entities:events(keys)
 
-  -- TODO: keep the avatar in synch with the emitters here!
+  -- The avatar position could have changed, so we keep its emitter's
+  -- position synched.
+  local position = self.entities.avatar.position
+  self.maze:move_emitter('avatar', math.floor(position.x), math.floor(position.y))
 end
 
 function world:update(dt)

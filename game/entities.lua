@@ -170,7 +170,6 @@ function Entities:events(keys)
   -- border that force the player *inside* the map itself.
   local position = avatar.position
   local _ = self.world:move(position, dx, dy)
-  self.world.maze:move_emitter('avatar', math.floor(position.x), math.floor(position.y))
 
   -- If the player requested a flare drop, leave it at the current player
   -- position
