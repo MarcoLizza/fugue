@@ -32,7 +32,7 @@ local constants = {
 
 -- MODULE VARIABLES ------------------------------------------------------------
 
-constants.IDENTITY = 'void'
+constants.IDENTITY = 'FuGuE'
 
 constants.MAZE_WIDTH = 37
 constants.MAZE_HEIGHT = 37
