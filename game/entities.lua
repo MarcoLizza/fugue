@@ -102,7 +102,6 @@ function Entities:generate(level)
   -- since the player will move from the starting point.
   while true do
     local x, y = randomize_position()
-    local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
     if maze:is_walkable(x, y) then
       local door = { position = { x = x, y = y }, visible = false, unlocked = false }
       self.door = door
@@ -224,17 +223,19 @@ function Entities:draw()
   local world = self.world
   local maze = world.maze
   local avatar = self.avatar
-  
-  -- FIXME: Flares will dim according to their energy value.
-  for _, flare in pairs(self.flares) do -- draw the flares
+
+  -- Flares dim according to their energy value. The will become invisible
+  -- even if globally illuminated.
+  for flare_id, flare in pairs(self.flares) do
     local x, y = flare.position.x, flare.position.y
-    local energy = maze:energy_at(x, y) --  maze:get_entity(flare_id):energy_at(x, y)
+    local emitter = maze:get_emitter(flare_id)
+    local energy = emitter:energy_at(x, y)
     local alpha = math.min(math.floor(255 * energy), 255)
     graphics.draw(x, y, 'yellow', alpha)
   end
 
   -- Keys are visible according to the global energy level on their spot.
-  for _, key in pairs(self.keys) do -- draw the keys
+  for _, key in pairs(self.keys) do
     if key.visible then
       local x, y = key.position.x, key.position.y
       local energy = maze:energy_at(x, y)
@@ -243,13 +244,11 @@ function Entities:draw()
     end
   end
 
-  -- The avatar is always visible. It need to be visible over flares
-  -- and keys.
+  -- The avatar is always visible. It need to be visible over flares and keys.
   local x, y = avatar.position.x, avatar.position.y
   graphics.draw(x, y, 'cyan')
 
-  -- Display the door, if visible (e.g. the player has fetched all
-  -- the keys).
+  -- Display the door, if visible (e.g. the player has fetched all the keys).
   local door = self.door
   if door.visible then
     local x, y = door.position.x, door.position.y
