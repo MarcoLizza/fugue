@@ -134,12 +134,10 @@ end
 function world:move(point, dx, dy) -- Maze:move_to()
   local x, y = point.x, point.y
   local nx, ny = x + dx, y + dy
-  if self.maze:is_walkable(nx, ny) then
-    point.x = nx
+  -- We cannot move diagonally by design.
+  if dy ~= 0 and self.maze:is_walkable(x, ny) then
     point.y = ny
-  elseif self.maze:is_walkable(x, ny) then
-    point.y = ny
-  elseif self.maze:is_walkable(nx, y) then
+  elseif dx ~=  0 and self.maze:is_walkable(nx, y) then
     point.x = nx
   end
   return point.x ~= x or point.y ~= y
