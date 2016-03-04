@@ -40,11 +40,13 @@ local Foe = {
   direction = nil
 }
 
--- LOCAL VARIABLES -------------------------------------------------------------
+-- LOCAL CONSTANTS -------------------------------------------------------------
 
-local _directions = { 'n', 's', 'w', 'e' }
-local _opposites = { n = 's', s = 'n', w = 'e', e = 'w' }
-local _deltas = {
+local DIRECTIONS = { 'n', 's', 'w', 'e' }
+
+local OPPOSITES = { n = 's', s = 'n', w = 'e', e = 'w' }
+
+local DELTAS = {
   n = { x = 0, y = -1 },
   s = { x = 0, y = 1 },
   w = { x = -1, y = 0 },
@@ -70,7 +72,7 @@ function Foe:initialize(world, x, y)
   self.state = 'roaming'
   self.memory = 0
   self.remaining_steps = 0
-  self.direction = _directions[love.math.random(4)]
+  self.direction = DIRECTIONS[love.math.random(4)]
   self.target = nil -- if nil the foe is roaming
 end
 
@@ -136,16 +138,16 @@ function Foe:update(dt)
 
   -- The AI will keep on moving toward the current direction until a wall
   -- is reached *or* too many steps have been done.
-  local delta = _deltas[self.direction]
+  local delta = DELTAS[self.direction]
   local moved = world:move(self.position, delta.x, delta.y)
   if moved then
     self.remaining_steps = self.remaining_steps - 1
   end
   if not moved or self.remaining_steps <= 0 then
-    local directions = array.shuffle(_directions)
+    local directions = array.shuffle(DIRECTIONS)
     for _, direction in ipairs(directions) do
-      if direction ~= _opposites[self.direction] then -- discard the coming direction
-        local delta = _deltas[direction]
+      if direction ~= OPPOSITES[self.direction] then -- discard the coming direction
+        local delta = DELTAS[direction]
         moved = world:move(self.position, delta.x, delta.y)
         if moved then
           self.direction = direction

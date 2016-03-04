@@ -30,7 +30,6 @@ local utils = require('lib.utils')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Hud = {
-  world = nil
 }
 
 -- MODULE OBJECT CONSTRUCTOR ---------------------------------------------------
@@ -42,7 +41,7 @@ function Hud.new()
   return self
 end
 
--- LOCAL VARIABLES -------------------------------------------------------------
+-- LOCAL CONSTANTS -------------------------------------------------------------
 
 local DIRECTIONS = {
   'e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'

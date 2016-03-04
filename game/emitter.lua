@@ -23,7 +23,6 @@ freely, subject to the following restrictions:
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Emitter = {
-  _VERSION = '0.1.0',
   -- PARAMETERS --
   x = nil,
   y = nil,

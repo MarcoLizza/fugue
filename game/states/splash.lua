@@ -24,20 +24,13 @@ freely, subject to the following restrictions:
 
 local splash = {
   states = {
-    { mode = 'fade-in', delay = 1, file = 'assets/splash-0.png' },
-    { mode = 'display', delay = 5, file = 'assets/splash-0.png' },
-    { mode = 'cross-out', delay = 0.25, file = 'assets/splash-0.png' },
-    { mode = 'cross-in', delay = 0.25, file = 'assets/splash-1.png' },
-    { mode = 'display', delay = 5, file = 'assets/splash-1.png' },
-    { mode = 'cross-out', delay = 0.25, file = 'assets/splash-1.png' },
-    { mode = 'cross-in', delay = 0.25, file = 'assets/splash-2.png' },
-    { mode = 'display', delay = 5, file = 'assets/splash-2.png' },
-    { mode = 'fade-out', delay = 2, file = 'assets/splash-2.png' },
-  },
-  index = nil,
-  image = nil,
-  delay = 0,
-  progress = 0
+    { mode = 'fade-in', delay = 1, file = 'assets/1gam.png' },
+    { mode = 'display', delay = 5, file = 'assets/1gam.png' },
+    { mode = 'cross-out', delay = 0.25, file = 'assets/1gam.png' },
+    { mode = 'cross-in', delay = 0.25, file = 'assets/love2d.png' },
+    { mode = 'display', delay = 5, file = 'assets/love2d.png' },
+    { mode = 'cross-out', delay = 0.25, file = 'assets/love2d.png' }
+  }
 }
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------

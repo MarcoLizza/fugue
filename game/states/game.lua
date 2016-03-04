@@ -29,12 +29,7 @@ local Input = require('lib.input')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local game = {
-  environment = nil,
-  input = nil,
   world = require('game.world'),
-  --
-  progress = nil,
-  running = nil
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------

@@ -48,7 +48,7 @@ local Maze = {
 -- match only on cells whose value is different from [value]. Then, once the
 -- kernel matches, the [filled] cells are set to [value]. Note that coordinates
 -- are specified as a displacement from the current one (i.e. relative to it).
-local patterns = {
+local PATTERNS = {
   {
     matched = {
       { dx = -1, dy = -1, value = true }, -- 111    111
@@ -259,7 +259,7 @@ function Maze:generate()
   expand(self.cells, grid, width, height)
   
   -- Seek selected patterns and fill the map.
-  for _, pattern in ipairs(patterns) do
+  for _, pattern in ipairs(PATTERNS) do
     fill(self.cells, self.width, self.height, pattern)
   end
   

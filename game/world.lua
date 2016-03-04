@@ -27,17 +27,15 @@ local constants = require('game.constants')
 local Entities = require('game.entities')
 local Hud = require('game.hud')
 local Maze = require('game.maze')
+
 local graphics = require('lib.graphics')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local world = {
-  maze = nil,
-  entities = nil,
-  hud = nil
 }
 
--- LOCAL VARIABLES -------------------------------------------------------------
+-- LOCAL CONSTANTS -------------------------------------------------------------
 
 local TINTS = {
   ground = { 0x99, 0x88, 0x77 },

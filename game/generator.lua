@@ -29,18 +29,15 @@ local array = require('lib.array')
 local generator = {
 }
 
--- LOCAL VARIABLES -------------------------------------------------------------
+-- LOCAL CONSTANTS -------------------------------------------------------------
 
-local DELTAX = {
-  n = 0, s = 0, e = 1, w = -1,
-}
+local OPPOSITES = { n = 's', s = 'n', w = 'e', e = 'w' }
 
-local DELTAY = {
-  n = -1, s = 1, e = 0, w = 0,
-}
-
-local OPPOSITE = {
-  n = 's', s = 'n', e = 'w', w = 'e',
+local DELTAS = {
+  n = { 0, -1 },
+  s = { 0, 1 },
+  w = { -1, 0 },
+  e = { 1, 0 },
 }
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
@@ -48,10 +45,11 @@ local OPPOSITE = {
 local function walk(grid, width, height, x, y)
   local directions = array.shuffle({ 'n', 's', 'e', 'w' })
   for _, direction in ipairs(directions) do
-    local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+    local dx, dy = unpack(DELTAS[direction])
+    local nx, ny = x + dx, y + dy
     if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] == 0 then
       table.insert(grid[y][x], direction)
-      table.insert(grid[ny][nx], OPPOSITE[direction])
+      table.insert(grid[ny][nx], OPPOSITES[direction])
       return nx, ny
     end
   end
@@ -66,10 +64,11 @@ local function hunt(grid, width, height)
         -- ... and check for a random neighbour already visited.
         local directions = array.shuffle({ 'n', 's', 'e', 'w' })
         for _, direction in ipairs(directions) do
-          local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+          local dx, dy = unpack(DELTAS[direction])
+          local nx, ny = x + dx, y + dy
           if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] > 0 then -- already visited
             table.insert(grid[y][x], direction)
-            table.insert(grid[ny][nx], OPPOSITE[direction])
+            table.insert(grid[ny][nx], OPPOSITES[direction])
             return nx, ny
           end
         end
@@ -93,10 +92,11 @@ function generator.braid(grid, width, height, amount)
         local directions = array.shuffle({ 'n', 's', 'e', 'w' })
         for _, direction in ipairs(directions) do
           if direction ~= source then -- we are not considering the source
-            local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+            local dx, dy = unpack(DELTAS[direction])
+            local nx, ny = x + dx, y + dy
             if nx >= 1 and ny >= 1 and ny <= height and nx <= width then
               table.insert(grid[y][x], direction)
-              table.insert(grid[ny][nx], OPPOSITE[direction])
+              table.insert(grid[ny][nx], OPPOSITES[direction])
 --              break -- relax this for bigger rooms!!!
               remaining = remaining - 1
               if remaining == 0 then
@@ -130,13 +130,14 @@ function generator.generate_rec(width, height)
     local moved = false
     local directions = array.shuffle({ 'n', 's', 'e', 'w' })
     for _, direction in ipairs(directions) do
-      local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+      local dx, dy = unpack(DELTAS[direction])
+      local nx, ny = x + dx, y + dy
       if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] == 0 then
         -- ... push it into the stack (as we might fork from it later).
         table.insert(queue, cell)
       -- Carve a passage to it.
         table.insert(grid[y][x], direction)
-        table.insert(grid[ny][nx], OPPOSITE[direction])
+        table.insert(grid[ny][nx], OPPOSITES[direction])
       -- Update the current cell, moving to the neighbour.
         cell = { x = nx, y = ny }
         moved = true
@@ -168,14 +169,16 @@ function generator.generate_gt(width, height, chooser)
 
     local directions = array.shuffle({ 'n', 's', 'e', 'w' })
     for _, direction in ipairs(directions) do
-      local nx, ny = x + DELTAX[direction], y + DELTAY[direction]
+      local dx, dy = unpack(DELTAS[direction])
+      local nx, ny = x + dx, y + dy
       if nx >= 1 and ny >= 1 and ny <= height and nx <= width and #grid[ny][nx] == 0 then
-        --
+        -- Carve a passage to the select cell...
         table.insert(grid[y][x], direction)
-        table.insert(grid[ny][nx], OPPOSITE[direction])
+        table.insert(grid[ny][nx], OPPOSITES[direction])
         -- ... push it into the stack (as we might fork from it later).
         table.insert(queue, { x = nx, y = ny })
-        --
+        -- We are not removing the cell from the queue until we have not
+        -- reached a dead-end.
         index = nil
       end
     end
@@ -215,15 +218,15 @@ function generator.generate(mode, width, height)
     return generator.generate_rec(width, height)
   elseif mode == 'gt-fifo' then -- recursive backtracker
     return generator.generate_gt(width, height, function(queue)
-        return #queue
+        return #queue -- newest
       end)
   elseif mode == 'gt-filo' then -- tree
     return generator.generate_gt(width, height, function(queue)
-        return 1
+        return 1 -- oldest
       end)
   elseif mode == 'gt-rand' then -- prim's algorithm
     return generator.generate_gt(width, height, function(queue)
-        return love.math.random(#queue)
+        return love.math.random(#queue) -- random
       end)
   else
     return generator.generate_rec(width, height)
