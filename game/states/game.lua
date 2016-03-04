@@ -45,10 +45,20 @@ function game:initialize(environment)
 end
 
 function game:enter()
+  -- Reset to the first ("prologue") level.
+  self:reset(0)
+end
+
+function game:reset(level)
+  -- Update the global variable to track game progress.
+  self.environment.level = level
+
+  -- Regenerate the world, according to the new level.
+  self.world:generate(level)
+
+  -- Reset the presentation variables, to display the level information.
   self.progress = 0
   self.running = false
-  self.environment.level = 0
-  self.world:generate(self.environment.level)
 end
 
 function game:leave()
@@ -76,17 +86,14 @@ function game:update(dt)
   -- Update the world, then get the current world state used to drive the
   -- engine state-machine.
   self.world:update(dt)
-  local state = self.world:get_state()
   
+  local state = self.world:get_state()
   if state then
     if state == 'goal' then
-      self.environment.level = self.environment.level + 1
+      self:reset(self.environment.level + 1)
     elseif state == 'game-over' then
       return 'restart'
     end
-    self.progress = 0
-    self.running = false
-    self.world:generate(self.environment.level)
   end
 
   return nil
