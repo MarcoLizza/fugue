@@ -98,14 +98,12 @@ function Entities:generate(level)
     avatar.position = { x = 2, y = maze.height - 1 }
   end
   
-  -- Pick a random position for the door. It need to be far from the player.
-  -- Initially, the door is not visible.
-  -- FIXME: the door can be everywhere, since the player will move from th
-  --        starting point!
+  -- Pick a random position for the door. The door can be everywhere,
+  -- since the player will move from the starting point.
   while true do
     local x, y = randomize_position()
     local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
-    if maze:is_walkable(x, y) and distance >= 35 then
+    if maze:is_walkable(x, y) then
       local door = { position = { x = x, y = y }, visible = false, unlocked = false }
       self.door = door
       break
