@@ -227,9 +227,9 @@ function Entities:draw()
   -- FIXME: Flares will dim according to their energy value.
   for _, flare in pairs(self.flares) do -- draw the flares
     local x, y = flare.position.x, flare.position.y
-    local energy = maze:energy_at(x, y)
+    local energy = maze:energy_at(x, y) --  maze:get_entity(flare_id):energy_at(x, y)
     local alpha = math.min(math.floor(255 * energy), 255)
-    graphics.draw(x, y, { 0xff, 0xdd, 0x00, alpha })
+    graphics.draw(x, y, 'yellow', alpha)
   end
 
   -- Keys are visible according to the global energy level on their spot.
@@ -238,14 +238,14 @@ function Entities:draw()
       local x, y = key.position.x, key.position.y
       local energy = maze:energy_at(x, y)
       local alpha = config.debug.cheat and 255 or math.min(math.floor(255 * energy), 255)
-      graphics.draw(x, y, { 127, 255, 127, alpha })
+      graphics.draw(x, y, 'teal', alpha)
     end
   end
 
   -- The avatar is always visible. It need to be visible over flares
   -- and keys.
   local x, y = avatar.position.x, avatar.position.y
-  graphics.draw(x, y, { 127, 255, 255, 255 })
+  graphics.draw(x, y, 'cyan')
 
   -- Display the door, if visible (e.g. the player has fetched all
   -- the keys).
@@ -254,7 +254,7 @@ function Entities:draw()
     local x, y = door.position.x, door.position.y
     local energy = maze:energy_at(x, y)
     local alpha = config.debug.cheat and 255 or math.min(math.floor(255 * energy), 255)
-    graphics.draw(x, y, { 127, 255, 127, alpha })
+    graphics.draw(x, y, 'green', alpha)
   end
 
   for _, foe in pairs(self.foes) do

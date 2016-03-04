@@ -22,18 +22,19 @@ freely, subject to the following restrictions:
 
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
-local graphics = require('lib.graphics')
 local constants = require('game.constants')
+
+local Dampener = require('lib.dampener')
+local graphics = require('lib.graphics')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local menu = {
   states = {
     {
-      mode = 'fade-in',
+      mode = 'cross-in',
       delay = 3,
       init = function(self, context)
-          self.image = love.graphics.newImage('assets/menu.png')
           self.progress = 0
         end,
       update = function(self, context, dt)
@@ -46,7 +47,9 @@ local menu = {
           return math.min(self.progress / self.delay, 1.0)
         end,
       draw = function(self, context) 
-          love.graphics.draw(self.image, 0, 0)
+          graphics.cover('dimgray')
+          graphics.text('FUGUE',
+            constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
         end,
       deinit = function(self, context)
           self.image = nil
@@ -54,7 +57,6 @@ local menu = {
     },
     {
       init = function(self, context)
-          self.image = love.graphics.newImage('assets/menu.png')
         end,
       update = function(self, context, dt)
         end,
@@ -63,9 +65,11 @@ local menu = {
         end,
       alpha = nil,
       draw = function(self, context) 
-          love.graphics.draw(self.image, 0, 0)
-        graphics.text('PRESS X TO START',
-          constants.SCREEN_RECT, 'retro-computer', { 255, 255, 255 })
+          graphics.cover('dimgray')
+          graphics.text('FUGUE',
+            constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
+          graphics.text('PRESS X TO START',
+            constants.SCREEN_RECT, 'retro-computer', 'white', 'center', 'bottom')
         end,
       deinit = function(self, context)
           self.image = nil
@@ -75,7 +79,6 @@ local menu = {
       mode = 'fade-out',
       delay = 5,
       init = function(self, context)
-          self.image = love.graphics.newImage('assets/menu.png')
           self.progress = 0
         end,
       update = function(self, context, dt)
@@ -88,13 +91,21 @@ local menu = {
           return math.min(self.progress / self.delay, 1.0)
         end,
       draw = function(self, context) 
-          love.graphics.draw(self.image, 0, 0)
+          graphics.cover('dimgray')
+          graphics.text('FUGUE',
+            constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
         end,
       deinit = function(self, context)
           self.image = nil
         end
     },
   }
+}
+
+-- LOCAL CONSTANTS -------------------------------------------------------------
+
+local KEYS = {
+  'x'
 }
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
@@ -107,23 +118,26 @@ end
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function menu:initialize()
+  self.dampener = Dampener.new()
+  self.dampener:initialize(0.5)
 end
 
 function menu:enter()
-  self.index = nil
-  self.state = nil
+  self.dampener:reset()
   
+  self.index = nil
   self.begin = false
 end
 
 function menu:leave()
-  -- Release the state resource upon state leaving.
-  self.state = nil
 end
 
 function menu:update(dt)
-  if not self.begin then
-    if love.keyboard.isDown('x') then
+  self.dampener:update(dt)
+  local passed = self.dampener:passed()
+  if passed then
+    local keys, has_input = utils.grab_input(KEYS)
+    if keys('x') then
       self.begin = true
     end
   end

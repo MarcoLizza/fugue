@@ -31,23 +31,18 @@ local utils = require('lib.utils')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local gameover = {
-  dampener = Dampener.new(),
-  image = nil,
-  image_index = nil,
-  text_index = nil,
   delay = 3,
-  progress = nil
 }
 
--- MODULE CONSTANTS ------------------------------------------------------------
+-- LOCAL CONSTANTS -------------------------------------------------------------
 
 local COLORS = {
-  { 255,   0,   0 },
-  { 255, 255,   0 },
-  {   0, 255,   0 },
-  {   0, 255, 255 },
-  {   0,   0, 255 },
-  { 255,   0, 255 }
+  { 127,   0,   0 },
+  { 127, 127,   0 },
+  {   0, 127,   0 },
+  {   0, 127, 127 },
+  {   0,   0, 127 },
+  { 127,   0, 127 }
 }
 
 local KEYS = {
@@ -57,16 +52,16 @@ local KEYS = {
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function gameover:initialize(environment)
+  self.environment = environment
+
+  self.dampener = Dampener.new()
   self.dampener:initialize(0.5)
-  
-  self.image = love.graphics.newImage('assets/gameover.png')
 end
 
 function gameover:enter()
   self.dampener:reset()
 
-  self.image_index = 1
-  self.text_index = #COLORS
+  self.index = 1
   self.progress = 0
 end
 
@@ -83,8 +78,7 @@ function gameover:update(dt)
   self.progress = self.progress + dt
   
   if self.progress >= self.delay then
-    self.image_index = utils.forward(self.image_index, COLORS)
-    self.text_index = utils.backward(self.text_index, COLORS)
+    self.index = utils.forward(self.index, COLORS)
     self.progress = 0
   end
 
@@ -96,16 +90,17 @@ end
 function gameover:draw()
   local alpha = self.progress / self.delay
 
-  local image_next = utils.forward(self.image_index, COLORS)
-  local text_next = utils.backward(self.text_index, COLORS)
-  
-  local image_color = utils.lerp(COLORS[self.image_index], COLORS[image_next], alpha)
-  love.graphics.setColor(image_color) -- colorize the image
-  love.graphics.draw(self.image, 0, 0)
+  local next = utils.forward(self.index, COLORS)
 
-  local text_color = utils.lerp(COLORS[self.text_index], COLORS[text_next], alpha)
+  local color = utils.lerp(COLORS[self.index], COLORS[next], alpha)
+  graphics.cover(color)
+  graphics.text('GAME OVER',
+    constants.SCREEN_RECT, 'retro-computer', utils.scale(color, 0.80), 'center', 'middle', 2)
+  graphics.text(string.format('YOU REACHED DAY #%d', self.environment.level),
+    { 0, constants.SCREEN_HEIGHT * 2 / 3, constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT },
+    'silkscreen', { 255, 255, 255, 127 }, 'center', 'top', 2)
   graphics.text('PRESS X TO RESTART',
-    constants.SCREEN_RECT, 'retro-computer', text_color) -- colorize the text
+    constants.SCREEN_RECT, 'silkscreen', { 255, 255, 255, 191 }, 'center', 'bottom')
 end
 
 -- END OF MODULE ---------------------------------------------------------------

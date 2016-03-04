@@ -143,6 +143,20 @@ function utils.lerp(from, to, alpha)
   end
 end
 
+-- Returns a scaled (i.e. multiplied) version of a table. It also works with
+-- numeric values, although is not so useful.
+function utils.scale(values, factor)
+  if type(values) == 'table' then
+    local result = {}
+    for _, value in ipairs(values) do
+      result[#result + 1] = utils.scale(value, factor)
+    end
+    return result
+  else
+    return values * factor
+  end
+end
+
 -- We are generically calling the source image "sheet" since it contains
 -- the whole set of sub-images, and the quad-set "atlas" since it does
 -- not contains any image-data but only rectangles used to pick the

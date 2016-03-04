@@ -38,10 +38,9 @@ local world = {
 -- LOCAL CONSTANTS -------------------------------------------------------------
 
 local TINTS = {
-  ground = { 0x99, 0x88, 0x77 },
-  wall = { 0x77, 0x55, 0x22 },
-  concrete = { 0x44, 0x33, 0x11 },
-  undefined = { 0x3f, 0x3f, 0x3f }
+  ground = 'peru', --{ 0x99, 0x88, 0x77 },
+  wall = 'saddlebrown', --{ 0x77, 0x55, 0x22 },
+  undefined = 'purple' --{ 0x3f, 0x3f, 0x3f }
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -104,22 +103,21 @@ end
 function world:draw()
   if config.debug.shadows then
     self.maze:scan(function(x, y, color, cell, energy)
-        local r, g, b = unpack(TINTS[color])
         local alpha = math.min(math.floor(255 * energy), 255)
-        graphics.draw(x, y, { r, g, b, alpha })
+        graphics.draw(x, y, TINTS[color], alpha )
       end)
 
     local danger = self.entities:danger_level()
-    graphics.cover({ 255, 0, 0, math.floor(danger * 127) })
+    graphics.cover({ 255, 0, 0 }, math.floor(danger * 127))
   else
     self.maze:scan(function(x, y, color, cell, energy)
         local tint = cell and 63 or 15
-        graphics.draw(x, y, { tint, tint, tint, 255 })
+        graphics.draw(x, y, { tint, tint, tint }, 255)
       end)
 
     self.maze:scan(function(x, y, color, cell, energy)
         local alpha = math.min(math.floor(255 * energy), 255)
-        graphics.draw(x, y, { alpha, alpha, alpha, 127 })
+        graphics.draw(x, y, { alpha, alpha, alpha }, 127)
       end)
   end
 

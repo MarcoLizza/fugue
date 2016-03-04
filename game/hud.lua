@@ -86,9 +86,15 @@ function Hud:draw()
   local dx, dy = utils.delta(target.position, avatar.position)
   local compass = compass(dx, dy)
 
-  local text = string.format('L: %d | D: %d | H: %d | F: %d | A: %s',
-      world.level, avatar.duration, avatar.health, avatar.flares, compass)
-  graphics.text(text, { 0, constants.SCREEN_HEIGHT - 8 }, 'silkscreen', { 255, 255, 255 })
+  graphics.text(string.format('DAY #%d', world.level),
+      constants.SCREEN_RECT, 'silkscreen', { 255, 255, 255 }, 'left', 'top')
+
+  graphics.text(compass,
+      constants.SCREEN_RECT, 'silkscreen', { 255, 255, 255 }, 'right', 'top', 2)
+
+  graphics.text(string.format('duration %d | health %d | flares %d',
+      avatar.duration, avatar.health, avatar.flares),
+      constants.SCREEN_RECT, 'silkscreen', { 255, 255, 255 }, 'center', 'bottom')
 end
 
 -- END OF MODULE ---------------------------------------------------------------

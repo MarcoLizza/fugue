@@ -96,9 +96,9 @@ function game:draw()
   if self.running then
     self.world:draw()
   else
-    graphics.cover({ 0, 0, 0 })
+    graphics.cover('black')
     graphics.text(string.format('DAY #%d', self.environment.level),
-      constants.SCREEN_RECT, 'retro_computer', { 255, 255, 255 })
+      constants.SCREEN_RECT, 'retro-computer', 'white', 'center', 'middle', 2)
   end
 end
 
