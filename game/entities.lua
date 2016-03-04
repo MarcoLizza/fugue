@@ -74,10 +74,12 @@ function Entities:generate(level)
   local world = self.world
   local maze = world.maze
 
-  -- We are cyclically incrementing the foes count, the restart and increase the
-  -- number of keys to be found.
+  -- We are cyclically incrementing the foes count and restart (and increase) the
+  -- number of keys to be found. We also decrement the foes' period (i.e. we speed
+  -- them up).
   local keys = level % 5
   local foes = level / 3
+  local period = math.max(0.2, 0.5 - (level / 5) * 0.1)
 
   -- The avatar is placed on a fixed position at a different corner each level.
   -- Please note that we are safe in assuming that the corner position is always
@@ -98,6 +100,8 @@ function Entities:generate(level)
   
   -- Pick a random position for the door. It need to be far from the player.
   -- Initially, the door is not visible.
+  -- FIXME: the door can be everywhere, since the player will move from th
+  --        starting point!
   while true do
     local x, y = randomize_position()
     local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
@@ -132,7 +136,7 @@ function Entities:generate(level)
     local distance = utils.distance(math.floor(maze.width / 2), math.floor(maze.height / 2), x, y)
     if maze:is_walkable(x, y) and distance < 15 then
       local foe = Foe.new()
-      foe:initialize(self.world, x, y)
+      foe:initialize(self.world, x, y, period)
       self.foes[#self.foes + 1] = foe
     end
   end

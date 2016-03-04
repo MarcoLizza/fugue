@@ -34,7 +34,7 @@ local Foe = {
   world = nil,
   position = nil,
   time = nil,
-  dampening = nil,
+  period = nil,
   state = nil,
   memory = nil,
   direction = nil
@@ -64,11 +64,11 @@ end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
-function Foe:initialize(world, x, y)
+function Foe:initialize(world, x, y, period)
   self.world = world
   self.position = { x = x, y = y }
   self.time = 0
-  self.dampening = 0.5
+  self.period = period
   self.state = 'roaming'
   self.memory = 0
   self.remaining_steps = 0
@@ -78,7 +78,7 @@ end
 
 function Foe:update(dt)
   self.time = self.time + dt -- DAMPENER
-  if self.time < self.dampening then
+  if self.time < self.period then
     return
   end
   self.time = 0
@@ -108,17 +108,15 @@ function Foe:update(dt)
     self.target = { x = flare.position.x, y = flare.position.y }
     self.state = 'seeking'
     self.memory = 10
-    self.dampening = 0.5
   elseif utils.distance(self.position, avatar.position) < 5 and maze:is_visible(self.position, avatar.position) then
     self.target = { x = avatar.position.x, y = avatar.position.y }
     self.state = 'seeking'
     self.memory = 10
-    self.dampening = 0.5
+    -- TODO: speed the foe up when seeking the player?
   else
     if self.memory <= 0 then
       self.target = nil -- will resume moving with the direction in use when the avatar was spotted
       self.state = 'roaming'
-      self.dampening = 0.5
     else
       self.memory = self.memory - 1
     end
