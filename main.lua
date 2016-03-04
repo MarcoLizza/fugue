@@ -46,7 +46,7 @@ function love.load(args)
     game = require('game.states.game'),
     restart = require('game.states.restart')
   }, { level = 0 })
-  _stateful:switch_to('menu')
+  _stateful:switch_to('splash')
 end
 
 function love.keypressed(key, scancode, isrepeat)
