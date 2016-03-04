@@ -31,13 +31,6 @@ local utils = require('lib.utils')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local Foe = {
-  world = nil,
-  position = nil,
-  time = nil,
-  period = nil,
-  state = nil,
-  memory = nil,
-  direction = nil
 }
 
 -- LOCAL CONSTANTS -------------------------------------------------------------
@@ -71,14 +64,23 @@ function Foe:initialize(world, x, y, period)
   self.period = period
   self.state = 'roaming'
   self.memory = 0
-  self.remaining_steps = 0
+  self.persistence = 0
   self.direction = DIRECTIONS[love.math.random(4)]
   self.target = nil -- if nil the foe is roaming
 end
 
 function Foe:update(dt)
-  self.time = self.time + dt -- DAMPENER
-  if self.time < self.period then
+  -- Keep the foe updating at discrete step (delayed by a period time). If the
+  -- foe is currenly seeking for the a target (avatar or flare, this is not
+  -- that important) it will updated more frequently.
+  -- When the maximum update frequency is reached, the foe will noticeably move
+  -- faster than the avatar.
+  self.time = self.time + dt
+  local period = self.period
+  if self.state == 'seeking' then
+    period = period * 0.90
+  end
+  if self.time < period then
     return
   end
   self.time = 0
@@ -112,7 +114,6 @@ function Foe:update(dt)
     self.target = { x = avatar.position.x, y = avatar.position.y }
     self.state = 'seeking'
     self.memory = 10
-    -- TODO: speed the foe up when seeking the player?
   else
     if self.memory <= 0 then
       self.target = nil -- will resume moving with the direction in use when the avatar was spotted
@@ -139,9 +140,9 @@ function Foe:update(dt)
   local delta = DELTAS[self.direction]
   local moved = world:move(self.position, delta.x, delta.y)
   if moved then
-    self.remaining_steps = self.remaining_steps - 1
+    self.persistence = self.persistence - 1
   end
-  if not moved or self.remaining_steps <= 0 then
+  if not moved or self.persistence <= 0 then
     local directions = array.shuffle(DIRECTIONS)
     for _, direction in ipairs(directions) do
       if direction ~= OPPOSITES[self.direction] then -- discard the coming direction
@@ -149,7 +150,7 @@ function Foe:update(dt)
         moved = world:move(self.position, delta.x, delta.y)
         if moved then
           self.direction = direction
-          self.remaining_steps = 10
+          self.persistence = 10
           break
         end
       end
