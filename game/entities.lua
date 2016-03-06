@@ -50,16 +50,6 @@ end
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
 
-local function iterate(object, table, callback)
-  local ax, ay = object.position.x, object.position.y
-  for _, other in ipairs(table) do
-    local bx, by = other.position.x, other.position.y
-    if not callback(ax, ay, bx, by) then
-      break
-    end
-  end
-end
-
 -- FIXME: return a table, not a pair.
 local function randomize_position()
   return love.math.random(constants.MAZE_WIDTH), love.math.random(constants.MAZE_HEIGHT)
@@ -276,31 +266,22 @@ end
 
 function Entities:is_avatar_hit()
   local avatar = self.avatar
-  
-  local occurred = false
-  iterate(avatar, self.foes, function(ax, ay, bx, by)
-      if utils.overlap(ax, ay, bx, by) then
-        occurred = true
-        return false
-      else
-        return true
-      end
-    end)
-  return occurred
+  local position = avatar.position
+  return overlap(position.x, position.y, self.foes)
 end
 
 function Entities:danger_level()
   local avatar = self.avatar
   
   local min_distance = math.huge
-  iterate(avatar, self.foes, function(ax, ay, bx, by)
-      local dx, dy = ax - bx, ay - by
-      local distance = math.sqrt(dx * dx + dy * dy)
+  
+  for _, foe in pairs(self.foes) do
+    local distance = utils.distance(avatar.position, foe.position)
       if min_distance > distance then
         min_distance = distance
       end
-      return true
-    end)
+  end
+  
   min_distance = math.min(10, min_distance)
   return 1 - (min_distance / 10)
 end
