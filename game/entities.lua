@@ -60,8 +60,19 @@ local function iterate(object, table, callback)
   end
 end
 
+-- FIXME: return a table, not a pair.
 local function randomize_position()
   return love.math.random(constants.MAZE_WIDTH), love.math.random(constants.MAZE_HEIGHT)
+end
+
+local function overlap(x, y, table)
+  for _, entry in pairs(table) do
+    local position = entry.position
+    if x == position.x and y == position.y then
+      return true
+    end
+  end
+  return false
 end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
@@ -98,40 +109,38 @@ function Entities:generate(level)
     avatar.position = { x = 2, y = maze.height - 1 }
   end
   
+  -- Generate the keys. Each key need to be "far enough" from the avatar, so
+  -- we are cycling util we find some reasonable positions. We also check for
+  -- overlapping keys.
+  self.keys = {}
+  while #self.keys < keys do
+    local x, y = randomize_position()
+    local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
+    if maze:is_walkable(x, y) and not overlap(x, y, self.keys) and distance >= 20 then
+      local key = { position = { x = x, y = y }, visible = true }
+      self.keys[#self.keys + 1] = key
+    end
+  end
+
   -- Pick a random position for the door. The door can be everywhere,
-  -- since the player will move from the starting point.
+  -- since the player will move from the starting point, but we do like it not
+  -- be place on top a key.
   while true do
     local x, y = randomize_position()
-    if maze:is_walkable(x, y) then
+    if maze:is_walkable(x, y) and not overlap(x, y, self.keys) then
       local door = { position = { x = x, y = y }, visible = false, unlocked = false }
       self.door = door
       break
     end
   end
 
-  -- Generate the keys. Each key need to be "far enough" from the avatar, so
-  -- we are cycling util we find some reasonable positions.
-  self.keys = {}
-  while #self.keys < keys do
-    local x, y = randomize_position()
-    local distance = utils.distance(avatar.position.x, avatar.position.y, x, y)
-    if maze:is_walkable(x, y) and distance >= 20 then
-      local key = { position = { x = x, y = y }, visible = true }
-      self.keys[#self.keys + 1] = key
-    end
-  end
-
-  -- TODO: divide the maze into nine sectors
-  --   123
-  --   456
-  --   789
-  -- randomize foes, near the cross-center of the screen
-  --   2, 4, 6, 8
+  -- Foes are randomly scatterd around the center of the maze. We make sure they
+  -- won't overlap each other.
   self.foes = {}
   while #self.foes < foes do
     local x, y = randomize_position()
     local distance = utils.distance(math.floor(maze.width / 2), math.floor(maze.height / 2), x, y)
-    if maze:is_walkable(x, y) and distance < 15 then
+    if maze:is_walkable(x, y) and not overlap(x, y, self.foes) and distance < 7 then
       local foe = Foe.new()
       foe:initialize(self.world, x, y, period)
       self.foes[#self.foes + 1] = foe
