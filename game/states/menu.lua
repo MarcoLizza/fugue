@@ -46,9 +46,7 @@ local menu = {
           return self.progress / self.delay
         end,
       draw = function(self, context) 
-          graphics.cover('dimgray')
-          graphics.text('FUGUE',
-            constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
+          context:draw_background()
         end,
       deinit = function(self, context)
           self.image = nil
@@ -56,6 +54,7 @@ local menu = {
     },
     {
       init = function(self, context)
+          context.begin = false
         end,
       update = function(self, context, dt)
         end,
@@ -64,9 +63,7 @@ local menu = {
         end,
       alpha = nil,
       draw = function(self, context) 
-          graphics.cover('dimgray')
-          graphics.text('FUGUE',
-            constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
+          context:draw_background()
           graphics.text('PRESS X TO START',
             constants.SCREEN_RECT, 'retro-computer', 'white', 'center', 'bottom')
         end,
@@ -90,21 +87,13 @@ local menu = {
           return self.progress / self.delay
         end,
       draw = function(self, context) 
-          graphics.cover('dimgray')
-          graphics.text('FUGUE',
-            constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
+          context:draw_background()
         end,
       deinit = function(self, context)
           self.image = nil
         end
     },
   }
-}
-
--- LOCAL CONSTANTS -------------------------------------------------------------
-
-local KEYS = {
-  'x'
 }
 
 -- LOCAL FUNCTIONS -------------------------------------------------------------
@@ -121,7 +110,6 @@ end
 
 function menu:enter()
   self.index = nil
-  self.begin = false
 end
 
 function menu:leave()
@@ -165,6 +153,12 @@ function menu:update(dt)
   end
 
   return nil
+end
+
+function menu:draw_background()
+  graphics.cover('dimgray')
+  graphics.text('FUGUE',
+    constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
 end
 
 function menu:draw()
