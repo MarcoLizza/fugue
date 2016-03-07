@@ -198,10 +198,13 @@ local function to_screen(x, y)
   return (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
 end
 
--- FIXME: if [alpha] is zero we can skip the drawing!
 function graphics.cover(color, alpha)
   color = type(color) == 'table' and color or COLORS[color]
   alpha = alpha or 255
+
+  if alpha == 0 then
+    return
+  end
 
   local r, g, b = unpack(color)
 
@@ -213,6 +216,10 @@ end
 function graphics.draw(x, y, color, alpha)
   color = type(color) == 'table' and color or COLORS[color]
   alpha = alpha or 255
+
+  if alpha == 0 then
+    return
+  end
 
   local r, g, b = unpack(color)
   local sx, sy = to_screen(x, y)
