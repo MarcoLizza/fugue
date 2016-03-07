@@ -53,17 +53,17 @@ end
 function gameover:enter()
   self.index = 1
   self.progress = 0
-  self.leave = false
+  self.continue = false
 end
 
 function gameover:leave()
 end
 
 function gameover:input(keys)
-  if keys['x'].pressed then
-    self.leave = true
+  if keys.pressed['x'] then
+    self.continue = true
   end
-  end
+end
 
 function gameover:update(dt)
   self.progress = self.progress + dt
@@ -73,7 +73,7 @@ function gameover:update(dt)
     self.progress = 0
   end
 
-  return self.leave and 'menu' or nil
+  return self.continue and 'menu' or nil
 end
 
 function gameover:draw()

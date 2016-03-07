@@ -144,19 +144,19 @@ end
 function Entities:input(keys)
   local dx, dy = 0, 0 -- find the delta movement
   local drop_flare = false
-  if keys['up'].pressed then
+  if keys.pressed['up'] then
     dy = dy - 1
   end
-  if keys['down'].pressed then
+  if keys.pressed['down'] then
     dy = dy + 1
   end
-  if keys['left'].pressed then
+  if keys.pressed['left'] then
     dx = dx - 1
   end
-  if keys['right'].pressed then
+  if keys.pressed['right'] then
     dx = dx + 1
   end
-  if keys['x'].pressed then
+  if keys.pressed['x'] then
     drop_flare = true
   end
 
@@ -173,7 +173,7 @@ function Entities:input(keys)
   -- position
   --
   -- TODO: we should synch flares and emitters outside this module. Note
-  --       that flare entities are note removed when the emitter is finished.
+  --       that flare entities are not removed when the emitter is finished.
   if drop_flare and avatar.flares > 0 then
     local flare_id = string.format('flare-%d', avatar.flares)
     local flare = { position = { x = position.x, y = position.y } }

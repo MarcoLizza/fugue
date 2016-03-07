@@ -54,12 +54,12 @@ local menu = {
     },
     {
       init = function(self, context)
-          context.begin = false
+          context.continue = false
         end,
       update = function(self, context, dt)
         end,
       condition = function(self, context)
-          return context.begin
+          return context.continue
         end,
       alpha = nil,
       draw = function(self, context) 
@@ -116,11 +116,11 @@ function menu:leave()
 end
 
 function menu:input(keys)
-  if keys['x'].pressed then
-    self.leave = true
-    end
+  if keys.pressed['x'] then
+    self.continue = true
   end
-  
+end
+
 function menu:update(dt)
   -- Determine if we should move to the next state. This happens if the index is
   -- not defined, or a programmable condition has triggere, or if (after advancing
@@ -171,7 +171,7 @@ function menu:draw()
   local state = self.state
   
   -- Draw the state.
-  state:draw()
+  state:draw(self)
 
   if not state.alpha or not state.mode then
     return
