@@ -62,9 +62,9 @@ function world:generate(level)
   -- According to the current level, set a "dusk" period, that is the length
   -- of a "see everything" dimming twilight. From some level onward the twilight
   -- won't be present at all.
-  self.dusk_period = math.max(0, 10 - level * 2.0)
+  local dusk_period = math.max(0, 10 - level * 0.5)
 
-  self.maze:generate()
+  self.maze:generate(dusk_period)
   self.entities:generate(level)
 
   local position = self.entities.avatar.position
@@ -81,11 +81,6 @@ function world:input(keys)
 end
 
 function world:update(dt)
-  -- Update the dusk period, if greater than zero.
-  if self.dusk_period > 0 then
-    self.dusk_period = math.max(0, self.dusk_period - dt)
-  end
-  
   -- Update the maze state. The callback will be invoked when an emitter
   -- disappear.
   self.maze:update(dt, function(id)
@@ -113,18 +108,12 @@ function world:get_state()
   end
 end
 
--- function world:dusk() (to be used by the entities, too)
-
 function world:draw()
   if config.debug.shadows then
     -- We compare the dusk and energy alpha, and draw the current
     -- tile according to the maximum one.
-    --
-    -- FIXME: also the entities should use this value!
-    local dusk_alpha = math.floor((self.dusk_period / 10) * 255)
     self.maze:scan(function(x, y, color, cell, energy)
-        local energy_alpha = math.min(math.floor(255 * energy), 255)
-        local alpha = math.max(dusk_alpha, energy_alpha)
+        local alpha = math.min(math.floor(255 * energy), 255)
         graphics.draw(x, y, TINTS[color], alpha)
       end)
 

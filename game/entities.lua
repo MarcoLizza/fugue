@@ -241,7 +241,6 @@ function Entities:draw()
     if key.visible then
       local x, y = key.position.x, key.position.y
       local energy = maze:energy_at(x, y)
---      local dusk = world:dusk()
       local alpha = config.debug.cheat and 255 or math.min(math.floor(255 * energy), 255)
       graphics.draw(x, y, 'teal', alpha)
     end

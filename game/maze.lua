@@ -240,9 +240,14 @@ function Maze:reset()
   self.emitters = {}
 end
 
-function Maze:generate()
+function Maze:generate(dusk_period)
   -- We reset he maze, to be safe.
   self:reset()
+  
+  -- Update and reset the current dusk period, that is the amount of time
+  -- the maze will be fully lit.
+  self.dusk_period = dusk_period
+  self.dusk = dusk_period
   
   -- The generator will work on a "half-size" version of the maze, since
   -- we will expand and insert the walls later. Please note that we need
@@ -323,6 +328,11 @@ function Maze:raycast(x0, y0, x1, y1, evaluate)
 end
 
 function Maze:update(dt, callback)
+  -- Update the dusk period, if not reached the limit.
+  if self.dusk > 0 then
+    self.dusk = math.max(0, self.dusk - dt)
+  end
+  
   -- Scan the emitters' list updating them and marking the "dead" ones. The
   -- latter are pulled from the list.
   local zombies = {}
@@ -385,7 +395,10 @@ function Maze:is_walkable(x, y)
 end
 
 function Maze:energy_at(x, y)
-  return self.energy[y][x]
+  -- Returns the maximum value between the current dusk illumination and
+  -- the cumulative emitters' energy.
+  local dusk = self.dusk / self.dusk_period  
+  return math.max(dusk, self.energy[y][x])
 end
 
 function Maze:is_visible(a, b, c, d)
@@ -402,9 +415,10 @@ function Maze:is_visible(a, b, c, d)
 end
 
 function Maze:scan(callback)
+  local dusk = self.dusk / self.dusk_period  
   for y = 1, self.height do
     for x = 1, self.width do
-      callback(x, y, self.colors[y][x], self.cells[y][x], self.energy[y][x])
+      callback(x, y, self.colors[y][x], self.cells[y][x], math.max(dusk, self.energy[y][x]))
     end
   end
 end
