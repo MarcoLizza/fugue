@@ -144,19 +144,19 @@ end
 function Entities:input(keys)
   local dx, dy = 0, 0 -- find the delta movement
   local drop_flare = false
-  if keys.pressed['up'] then
+  if keys['up'].pressed then
     dy = dy - 1
   end
-  if keys.pressed['down'] then
+  if keys['down'].pressed then
     dy = dy + 1
   end
-  if keys.pressed['left'] then
+  if keys['left'].pressed then
     dx = dx - 1
   end
-  if keys.pressed['right'] then
+  if keys['right'].pressed then
     dx = dx + 1
   end
-  if keys.pressed['x'] then
+  if keys['x'].pressed then
     drop_flare = true
   end
 

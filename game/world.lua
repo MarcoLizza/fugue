@@ -38,9 +38,9 @@ local world = {
 -- LOCAL CONSTANTS -------------------------------------------------------------
 
 local TINTS = {
-  ground = 'peru', --{ 0x99, 0x88, 0x77 },
-  wall = 'saddlebrown', --{ 0x77, 0x55, 0x22 },
-  undefined = 'purple' --{ 0x3f, 0x3f, 0x3f }
+  ground = 'peru',
+  wall = 'saddlebrown',
+  undefined = 'purple'
 }
 
 -- MODULE FUNCTIONS ------------------------------------------------------------

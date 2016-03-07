@@ -70,9 +70,6 @@ function game:update(dt)
     return
   end
   
-  -- Handle the events, that is mostly the inputs.
-  self:events(dt)
-
   -- Update the world, then get the current world state used to drive the
   -- engine state-machine.
   self.world:update(dt)

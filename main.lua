@@ -73,7 +73,7 @@ end
 function love.update(dt)
   -- Update the input handler and, if some keys are pressed,
   -- propagate to the state manager.
-  local keys = self.input:update(dt)
+  local keys = _input:update(dt)
   if keys.amount > 0 then
     _stateful:input(keys)
   end
