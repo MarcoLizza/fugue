@@ -24,7 +24,6 @@ freely, subject to the following restrictions:
 
 local constants = require('game.constants')
 
-local Dampener = require('lib.dampener')
 local graphics = require('lib.graphics')
 local utils = require('lib.utils')
 
@@ -45,36 +44,28 @@ local COLORS = {
   { 127,   0, 127 }
 }
 
-local KEYS = {
-  'x'
-}
-
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function gameover:initialize(environment)
   self.environment = environment
-
-  self.dampener = Dampener.new()
-  self.dampener:initialize(0.5)
 end
 
 function gameover:enter()
-  self.dampener:reset()
-
   self.index = 1
   self.progress = 0
+  self.leave = false
 end
 
 function gameover:leave()
 end
 
-function gameover:update(dt)
-  self.dampener:update(dt)
-  local passed = self.dampener:passed()
-  if not passed then
-    return
+function gameover:input(keys)
+  if keys['x'].pressed then
+    self.leave = true
+  end
   end
 
+function gameover:update(dt)
   self.progress = self.progress + dt
   
   if self.progress >= self.delay then
@@ -82,9 +73,7 @@ function gameover:update(dt)
     self.progress = 0
   end
 
-  local keys, has_input = utils.grab_input(KEYS)
-
-  return keys['x'] and 'menu' or nil
+  return self.leave and 'menu' or nil
 end
 
 function gameover:draw()

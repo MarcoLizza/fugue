@@ -58,6 +58,9 @@ function splash:leave()
   self.image = nil
 end
 
+function splash:input(keys)
+end
+
 function splash:update(dt)
   -- Determine if we should move to the next state. This happens if the index is
   -- not defined or if (after advancing the progress counter) the timeout has

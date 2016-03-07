@@ -24,7 +24,6 @@ freely, subject to the following restrictions:
 
 local constants = require('game.constants')
 local graphics = require('lib.graphics')
-local Input = require('lib.input')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -36,10 +35,6 @@ local game = {
 
 function game:initialize(environment)
   self.environment = environment
-
-  self.input = Input.new()
-  self.input:initialize({ up = 'move_up', down = 'move_down', left = 'move_left', right = 'move_right', x = 'action' },
-    { move_up = 0.2, move_down = 0.2, move_left = 0.2, move_right = 0.2, action = math.huge })
 
   self.world:initialize()
 end
@@ -64,13 +59,8 @@ end
 function game:leave()
 end
 
-function game:events(dt)
-  local keys = self.input:update(dt)
-  if keys.amount == 0 then
-    return
-  end
-
-  self.world:events(keys)
+function game:input(keys)
+  self.world:input(keys)
 end
 
 function game:update(dt)

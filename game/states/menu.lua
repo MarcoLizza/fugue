@@ -24,9 +24,7 @@ freely, subject to the following restrictions:
 
 local constants = require('game.constants')
 
-local Dampener = require('lib.dampener')
 local graphics = require('lib.graphics')
-local utils = require('lib.utils')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -119,13 +117,9 @@ end
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
 function menu:initialize()
-  self.dampener = Dampener.new()
-  self.dampener:initialize(0.5)
 end
 
 function menu:enter()
-  self.dampener:reset()
-  
   self.index = nil
   self.begin = false
 end
@@ -133,16 +127,13 @@ end
 function menu:leave()
 end
 
-function menu:update(dt)
-  self.dampener:update(dt)
-  local passed = self.dampener:passed()
-  if passed then
-    local keys, has_input = utils.grab_input(KEYS)
-    if keys['x'] then
-      self.begin = true
+function menu:input(keys)
+  if keys['x'].pressed then
+    self.leave = true
     end
   end
   
+function menu:update(dt)
   -- Determine if we should move to the next state. This happens if the index is
   -- not defined, or a programmable condition has triggere, or if (after advancing
   -- the progress counter) the timeout has elapsed.

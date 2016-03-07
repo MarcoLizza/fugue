@@ -141,7 +141,7 @@ function Entities:generate(level)
   self.flares = {}
 end
 
-function Entities:events(keys)
+function Entities:input(keys)
   local dx, dy = 0, 0 -- find the delta movement
   local drop_flare = false
   if keys.pressed['up'] then

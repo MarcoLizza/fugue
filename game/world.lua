@@ -66,8 +66,8 @@ function world:generate(level)
   self.maze:spawn_emitter('avatar', position.x, position.y, 5, 3)
 end
 
-function world:events(keys)
-  self.entities:events(keys)
+function world:input(keys)
+  self.entities:input(keys)
 
   -- The avatar position could have changed, so we keep its emitter's
   -- position synched.

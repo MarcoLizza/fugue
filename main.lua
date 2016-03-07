@@ -23,12 +23,14 @@ freely, subject to the following restrictions:
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
 local config = require('game.config')
+local Input = require('lib.input')
 local Stateful = require('lib.stateful')
 
 -- LOCAL VARIABLES -------------------------------------------------------------
 
 local _stateful = nil
 local _time = 0
+local _input = nil
 
 -- ENGINE CALLBACKS ------------------------------------------------------------
 
@@ -37,6 +39,11 @@ function love.load(args)
 
   -- We stay true to a real "pixelized" feel.
   love.graphics.setDefaultFilter('nearest', 'nearest', 1)
+
+  -- Initializes the input handler.
+  _input = Input.new()
+  _input:initialize({ up = 'move_vertical', down = 'move_vertical', left = 'move_horizontal', right = 'move_horizontal', x = 'action' },
+    { move_horizontal = 0.2, move_vertical = 0.2, action = math.huge })
 
   -- Initializes the state-engine.
   _stateful = Stateful.new()
@@ -64,6 +71,14 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.update(dt)
+  -- Update the input handler and, if some keys are pressed,
+  -- propagate to the state manager.
+  local keys = self.input:update(dt)
+  if keys.amount > 0 then
+    _stateful:input(keys)
+  end
+  
+  -- Update the state manager.
   local start = love.timer.getTime()
   _stateful:update(dt)
   _time = love.timer.getTime() - start
