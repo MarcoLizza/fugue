@@ -86,7 +86,7 @@ function Hud:draw()
   local dx, dy = utils.delta(target.position, avatar.position)
   local compass = compass(dx, dy)
 
-  graphics.text(string.format('DAY #%d', world.level),
+  graphics.text(string.format('NIGHT #%d', world.level),
       constants.SCREEN_RECT, 'silkscreen', { 255, 255, 255 }, 'left', 'top')
 
   graphics.text(compass,

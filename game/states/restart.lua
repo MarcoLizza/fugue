@@ -85,7 +85,7 @@ function gameover:draw()
   graphics.fill(color)
   graphics.text('GAME OVER',
     constants.SCREEN_RECT, 'retro-computer', utils.scale(color, 0.80), 'center', 'middle', 2)
-  graphics.text(string.format('YOU REACHED DAY #%d', self.environment.level),
+  graphics.text(string.format('YOU REACHED NIGHT #%d', self.environment.level),
     { 0, constants.SCREEN_HEIGHT * 2 / 3, constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT },
     'silkscreen', { 255, 255, 255, 127 }, 'center', 'top', 2)
   graphics.text('PRESS X TO RESTART',
