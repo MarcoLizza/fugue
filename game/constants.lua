@@ -27,10 +27,11 @@ local config = require('game.config')
 -- MODULE DECLARATION ----------------------------------------------------------
 
 local constants = {
-  _VERSION = '0.1.0'
 }
 
 -- MODULE VARIABLES ------------------------------------------------------------
+
+constants.VERSION = '0.2.0'
 
 constants.IDENTITY = 'FuGuE'
 
@@ -46,7 +47,7 @@ constants.SCREEN_RECT = { 0, 0, constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT 
 
 constants.WINDOW_WIDTH = constants.SCREEN_WIDTH * config.display.scale
 constants.WINDOW_HEIGHT = constants.SCREEN_HEIGHT * config.display.scale
-constants.WINDOW_TITLE = string.format('.: %s :. (%s)', string.upper(constants.IDENTITY), constants._VERSION)
+constants.WINDOW_TITLE = string.format('.: %s :. (%s)', string.upper(constants.IDENTITY), constants.VERSION)
 
 -- END OF MODULE ---------------------------------------------------------------
 
