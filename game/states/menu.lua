@@ -25,6 +25,7 @@ freely, subject to the following restrictions:
 local constants = require('game.constants')
 
 local graphics = require('lib.graphics')
+local easing = require('lib.easing')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -95,13 +96,6 @@ local menu = {
     },
   }
 }
-
--- LOCAL FUNCTIONS -------------------------------------------------------------
-
--- Very simple easing (quadratic) function.
-local function ease(value)
-  return math.pow(value, 2.0)
-end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
@@ -183,16 +177,16 @@ function menu:draw()
   -- According to the current mode, compute the fading color.
   local color = nil
   if state.mode == 'fade-in' then -- from black
-    alpha = ease(1.0 - alpha) * 255
+    alpha = easing.quadratic(1.0 - alpha) * 255
     color ='black'
   elseif state.mode == 'fade-out' then -- to black
-    alpha = ease(alpha) * 255
+    alpha = easing.quadratic(alpha) * 255
     color ='black'
   elseif state.mode == 'cross-in' then -- from white
-    alpha = ease(1.0 - alpha) * 255
+    alpha = easing.quadratic(1.0 - alpha) * 255
     color ='white'
   elseif state.mode == 'cross-out' then -- to white
-    alpha = ease(alpha) * 255
+    alpha = easing.quadratic(alpha) * 255
     color ='white'
   end
 

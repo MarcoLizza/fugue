@@ -23,6 +23,7 @@ freely, subject to the following restrictions:
 -- MODULE INCLUSIONS -----------------------------------------------------------
 
 local graphics = require('lib.graphics')
+local easing = require('lib.easing')
 
 -- MODULE DECLARATION ----------------------------------------------------------
 
@@ -36,13 +37,6 @@ local splash = {
     { mode = 'cross-out', delay = 0.25, file = 'assets/love2d.png' }
   }
 }
-
--- LOCAL FUNCTIONS -------------------------------------------------------------
-
--- Very simple easing (quadratic) function.
-local function ease(value)
-  return math.pow(value, 2.0)
-end
 
 -- MODULE FUNCTIONS ------------------------------------------------------------
 
@@ -119,16 +113,16 @@ function splash:draw()
   local color = nil
   local state = self.states[self.index]
   if state.mode == 'fade-in' then -- from black
-    alpha = ease(1.0 - alpha) * 255
+    alpha = easing.quadratic(1.0 - alpha) * 255
     color ='black'
   elseif state.mode == 'fade-out' then -- to black
-    alpha = ease(alpha) * 255
+    alpha = easing.quadratic(alpha) * 255
     color ='black'
   elseif state.mode == 'cross-in' then -- from white
-    alpha = ease(1.0 - alpha) * 255
+    alpha = easing.quadratic(1.0 - alpha) * 255
     color ='white'
   elseif state.mode == 'cross-out' then -- to white
-    alpha = ease(alpha) * 255
+    alpha = easing.quadratic(alpha) * 255
     color ='white'
   end
 
