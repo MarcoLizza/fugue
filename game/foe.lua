@@ -162,12 +162,12 @@ function Foe:draw()
   local x, y = self.position.x, self.position.y
   local energy = self.world.maze:energy_at(x, y)
   local alpha = config.debug.cheat and 255 or math.min(math.floor(255 * energy), 255)
-  graphics.draw(x, y, 'red', alpha)
+  graphics.square(x, y, 'red', alpha)
   if config.debug.details then
     love.graphics.setColor(127, 127, 255, alpha)
 --    love.graphics.print(string.format("%s %.5f", self.direction, self.memory), sx, sy - 8)
     if self.target then
-      graphics.draw(self.target.x, self.target.y, 'orange', alpha)
+      graphics.square(self.target.x, self.target.y, 'orange', alpha)
     end
   end
 end

@@ -114,20 +114,20 @@ function world:draw()
     -- tile according to the maximum one.
     self.maze:scan(function(x, y, color, cell, energy)
         local alpha = math.min(math.floor(255 * energy), 255)
-        graphics.draw(x, y, TINTS[color], alpha)
+        graphics.square(x, y, TINTS[color], alpha)
       end)
 
     local danger = self.entities:danger_level()
-    graphics.cover({ 255, 0, 0 }, math.floor(danger * 127))
+    graphics.fill({ 255, 0, 0 }, math.floor(danger * 127))
   else
     self.maze:scan(function(x, y, color, cell, energy)
         local tint = cell and 63 or 15
-        graphics.draw(x, y, { tint, tint, tint }, 255)
+        graphics.square(x, y, { tint, tint, tint }, 255)
       end)
 
     self.maze:scan(function(x, y, color, cell, energy)
         local alpha = math.min(math.floor(255 * energy), 255)
-        graphics.draw(x, y, { alpha, alpha, alpha }, 127)
+        graphics.square(x, y, { alpha, alpha, alpha }, 127)
       end)
   end
 

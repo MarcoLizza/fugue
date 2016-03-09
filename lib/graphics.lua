@@ -198,7 +198,7 @@ local function to_screen(x, y)
   return (x - 1) * constants.CELL_WIDTH, (y - 1) * constants.CELL_WIDTH
 end
 
-function graphics.cover(color, alpha)
+function graphics.fill(color, alpha)
   color = type(color) == 'table' and color or COLORS[color]
   alpha = alpha or 255
 
@@ -213,7 +213,7 @@ function graphics.cover(color, alpha)
       constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT)
 end
 
-function graphics.draw(x, y, color, alpha)
+function graphics.square(x, y, color, alpha)
   color = type(color) == 'table' and color or COLORS[color]
   alpha = alpha or 255
 

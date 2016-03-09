@@ -156,7 +156,7 @@ function menu:update(dt)
 end
 
 function menu:draw_background()
-  graphics.cover('dimgray')
+  graphics.fill('dimgray')
   graphics.text('FUGUE',
     constants.SCREEN_RECT, 'retro-computer', 'gray', 'center', 'middle', 3)
 end
@@ -199,7 +199,7 @@ function menu:draw()
   -- If the overlay "fading" color is defined, draw a full size filled
   -- rectangle over the current display.
   if color then
-    graphics.cover(color, alpha)
+    graphics.fill(color, alpha)
   end
   
   love.graphics.setColor(255, 255, 255)

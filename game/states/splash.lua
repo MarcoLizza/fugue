@@ -135,7 +135,7 @@ function splash:draw()
   -- If the overlay "fading" color is defined, draw a full size filled
   -- rectangle over the current display.
   if color then
-    graphics.cover(color, alpha)
+    graphics.fill(color, alpha)
   end
   
   love.graphics.setColor(255, 255, 255)

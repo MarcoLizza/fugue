@@ -82,7 +82,7 @@ function gameover:draw()
   local next = utils.forward(self.index, COLORS)
 
   local color = utils.lerp(COLORS[self.index], COLORS[next], alpha)
-  graphics.cover(color)
+  graphics.fill(color)
   graphics.text('GAME OVER',
     constants.SCREEN_RECT, 'retro-computer', utils.scale(color, 0.80), 'center', 'middle', 2)
   graphics.text(string.format('YOU REACHED DAY #%d', self.environment.level),
